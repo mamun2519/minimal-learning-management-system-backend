@@ -1,8 +1,10 @@
-import express, { Application } from "express";
+import type { Application, Request, Response } from "express";
+import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { corsMethods, corsOptions } from "./constants/origin";
 import { ApplicationRootRoute } from "./routes/root.route";
+import notFoundAPI from "./middlewares/notFound";
 
 const app: Application = express();
 
@@ -25,10 +27,14 @@ app.use(helmet.xssFilter());
 app.use("/api/v1", ApplicationRootRoute);
 
 //Root Route-----------
-app.get("/", applicationRootRoute);
-
+app.get("/", (req: Request, res: Response) => {
+  res
+    .status(200)
+    .send("Welcome to Minimal Learning Management System Backend!");
+});
 // Handle Not Found API -------
 app.use(notFoundAPI);
 
 // handle global error
-app.use(globalErrorHandler);
+// app.use(globalErrorHandler);
+export default app;
