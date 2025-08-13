@@ -7,9 +7,16 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
-    "target": "esnext",
+    "target": "ES2020",
+    "module": "ESNext",  
+     "allowJs": true, 
+       "checkJs": true,   
+    // "target": "esnext",
+     "esModuleInterop": true,
+    "moduleResolution": "node",    // or "nodenext" if Node 18+
     "types": [],
+        "allowSyntheticDefaultImports": true,
+
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
