@@ -75,7 +75,7 @@ const authUserProfile = async (userId: string): Promise<IAuthUser> => {
   return user;
 };
 
-export const authService = {
+export const AuthService = {
   registerUserIntoDB,
   loginUserFromDB,
   authUserProfile,
