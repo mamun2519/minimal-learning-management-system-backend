@@ -34,3 +34,35 @@ const registerUserIntoDB = async (
     token: accessToken,
   };
 };
+
+const loginUserFromDB = async (
+  user: Partial<IAuthUser>
+): Promise<AuthUserWithToken> => {
+  const { email, password } = user;
+  const isExitUser = await Auth.findOne({ email });
+  if (!isExitUser) {
+    throw new ApiError(400, "User does not exist with this email");
+  }
+  const isPasswordMatched = hashHelper.compareHash(
+    password as string,
+    isExitUser.password
+  );
+  if (!isPasswordMatched) {
+    throw new ApiError(400, "Password is incorrect");
+  }
+  // generate a token for the user
+  const accessToken = jwtHelpers.createToken(
+    {
+      id: isExitUser._id,
+      email: isExitUser.email,
+      role: isExitUser.role,
+    },
+    config.jwt.secret_token as Secret,
+    config.jwt.expire_in as string
+  );
+
+  return {
+    ...isExitUser.toObject(),
+    token: accessToken,
+  };
+};
