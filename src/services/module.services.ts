@@ -2,7 +2,7 @@ import ApiError from "../error/apiError";
 import { IModule } from "../interface/module.interface";
 import { Module } from "../models/module.model";
 
-const getAllModule = async (): Promise<IModule[]> => {
+const getAllModuleFromDB = async (): Promise<IModule[]> => {
   const modules: IModule[] = await Module.find({});
   return modules;
 };
@@ -29,7 +29,7 @@ const deleteModuleFromDb = async (id: string): Promise<IModule | null> => {
 
 export const ModuleServices = {
   deleteModuleFromDb,
-  getAllModule,
+  getAllModuleFromDB,
   getAllModuleByCourseId,
   getModuleByIdFromDb,
 };
