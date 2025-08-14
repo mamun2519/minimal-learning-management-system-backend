@@ -1,0 +1,50 @@
+import { LectureServices } from "../services/lecture.services";
+import catchAsync from "../shared/catchAsync";
+import sendResponse from "../shared/sendResponse";
+
+const getAllLectures = catchAsync(async (req, res) => {
+  const lecture = await LectureServices.getAllLectureFromDB();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Lectures retrieved successfully",
+    data: lecture,
+  });
+});
+
+const getAllLecturesByModuleId = catchAsync(async (req, res) => {
+  const lecture = await LectureServices.getAllLectureByModuleId(req.params.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Lectures retrieved successfully",
+    data: lecture,
+  });
+});
+
+const getLectureById = catchAsync(async (req, res) => {
+  const lecture = await LectureServices.getLectureByIdFromDb(req.params.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Lecture retrieved successfully",
+    data: lecture,
+  });
+});
+
+const deleteLecture = catchAsync(async (req, res) => {
+  const lecture = await LectureServices.deleteLectureFromDb(req.params.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Lecture deleted successfully",
+    data: lecture,
+  });
+});
+
+export const LectureController = {
+  getAllLectures,
+  getLectureById,
+  deleteLecture,
+  getAllLecturesByModuleId,
+};
