@@ -3,6 +3,7 @@ import { AuthRoute } from "./auth.route";
 import notFoundAPI from "../middlewares/notFound";
 import { CourseRoute } from "./course.route";
 import { ModuleRoute } from "./module.route";
+import { LectureRoute } from "./lecture.route";
 
 const router = express.Router();
 // Application Module Route ---------
@@ -18,6 +19,10 @@ const moduleRoute = [
   {
     path: "/module",
     route: ModuleRoute,
+  },
+  {
+    path: "/lecture",
+    route: LectureRoute,
   },
 ];
 
