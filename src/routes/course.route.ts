@@ -5,7 +5,8 @@ import { CourseController } from "../controllers/course.controller";
 const router = express.Router();
 
 router.post("/", FileUploadConfig.upload.single("file"), (req, res, next) => {
-  req.body = CourseValidation.insertCourseValidation.parse(req.body.data);
+  const parsedData = JSON.parse(req.body.data);
+  req.body = CourseValidation.insertCourseValidation.parse(parsedData);
 
   return CourseController.insertCourse(req, res, next);
 });
@@ -14,7 +15,10 @@ router.get("/", CourseController.getAllCourses);
 router.get("/:id", CourseController.getCourseById);
 router.delete("/:id", CourseController.deleteCourse);
 router.put("/:id", FileUploadConfig.upload.single("file"), (req, res, next) => {
-  req.body = CourseValidation.updateCourseValidation.parse(req.body.data);
+  const parsedData = JSON.parse(req.body.data);
+  req.body = CourseValidation.updateCourseValidation.parse(parsedData);
 
   return CourseController.updateCourse(req, res, next);
 });
+
+export const CourseRoute = router;

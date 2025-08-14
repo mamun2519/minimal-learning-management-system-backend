@@ -1,7 +1,7 @@
 import { Model } from "mongoose";
 
 export type ICourse = {
-  _id: string;
+  _id?: string;
   title: string;
   description: string;
   price: number;

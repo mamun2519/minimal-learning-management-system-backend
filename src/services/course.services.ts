@@ -15,13 +15,11 @@ const insertCourseInToDb = async (req: Request): Promise<ICourse> => {
     folder: "lms_uploads",
     resource_type: "auto",
   });
-  console.log("File uploaded to Cloudinary:", uploadFile);
   if (!uploadFile) {
     throw new ApiError(500, "Failed to upload file to Cloudinary");
   }
 
   const course: ICourse = {
-    _id: new Date().toISOString(),
     title: courseData?.title,
     description: courseData.description,
     price: courseData.price,
