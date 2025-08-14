@@ -88,3 +88,11 @@ const updateCourseInDb = async (
   }
   return updatedCourse;
 };
+
+export const CourseService = {
+  insertCourseInToDb,
+  getAllCoursesFromDb,
+  getCourseByIdFromDb,
+  deleteCourseFromDb,
+  updateCourseInDb,
+};
