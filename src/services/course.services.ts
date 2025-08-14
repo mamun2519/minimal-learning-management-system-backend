@@ -55,3 +55,36 @@ const deleteCourseFromDb = async (id: string): Promise<ICourse | null> => {
   }
   return course;
 };
+
+const updateCourseInDb = async (
+  id: string,
+  req: Request,
+  courseData: Partial<ICourse>
+): Promise<ICourse | null> => {
+  const fileData = req.file;
+  if (fileData) {
+    const uploadFile = await cloudinary.uploader.upload(fileData.path, {
+      folder: "lms_uploads",
+      resource_type: "auto",
+    });
+
+    const updateCourse = {
+      ...courseData,
+      file: {
+        url: uploadFile.secure_url,
+        key: uploadFile.public_id,
+      },
+    };
+    courseData = updateCourse;
+  }
+
+  const updatedCourse: ICourse | null = await Course.findByIdAndUpdate(
+    id,
+    courseData,
+    { new: true }
+  );
+  if (!updatedCourse) {
+    throw new ApiError(404, "Course not found");
+  }
+  return updatedCourse;
+};
