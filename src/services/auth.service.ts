@@ -66,3 +66,17 @@ const loginUserFromDB = async (
     token: accessToken,
   };
 };
+
+const authUserProfile = async (userId: string): Promise<IAuthUser> => {
+  const user = await Auth.findById(userId);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  return user;
+};
+
+export const authService = {
+  registerUserIntoDB,
+  loginUserFromDB,
+  authUserProfile,
+};
