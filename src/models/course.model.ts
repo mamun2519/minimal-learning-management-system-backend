@@ -1,5 +1,4 @@
 import { model, Schema } from "mongoose";
-import { AuthModel, IAuthUser } from "../interface/auth.interface";
 import { CourseModel, ICourse } from "../interface/course.interface";
 
 const courseSchema = new Schema<ICourse, CourseModel>(
