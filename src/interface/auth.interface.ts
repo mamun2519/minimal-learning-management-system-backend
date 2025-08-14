@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
 
-export type AuthUser = {
+export type IAuthUser = {
   _id: string;
   email: string;
   name: string;
@@ -8,7 +8,7 @@ export type AuthUser = {
   password: string;
 };
 
-export type UserModel = Model<AuthUser>;
-export type AuthUserWithToken = AuthUser & {
+export type AuthModel = Model<IAuthUser>;
+export type AuthUserWithToken = IAuthUser & {
   token: string;
 };
