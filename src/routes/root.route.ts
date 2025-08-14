@@ -2,6 +2,7 @@ import express from "express";
 import { AuthRoute } from "./auth.route";
 import notFoundAPI from "../middlewares/notFound";
 import { CourseRoute } from "./course.route";
+import { ModuleRoute } from "./module.route";
 
 const router = express.Router();
 // Application Module Route ---------
@@ -13,6 +14,10 @@ const moduleRoute = [
   {
     path: "/course",
     route: CourseRoute,
+  },
+  {
+    path: "/module",
+    route: ModuleRoute,
   },
 ];
 

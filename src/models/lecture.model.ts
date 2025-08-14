@@ -44,4 +44,4 @@ const lectureSchema = new Schema<ILecture, LectureModel>(
   }
 );
 
-export const Module = model<ILecture, LectureModel>("Lecture", lectureSchema);
+export const Lecture = model<ILecture, LectureModel>("Lecture", lectureSchema);
