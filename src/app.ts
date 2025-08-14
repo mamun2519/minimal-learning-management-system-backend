@@ -24,7 +24,7 @@ app.use(
 app.use(helmet.xssFilter());
 
 // Application Route---------------
-app.use("/api/v1", ApplicationRootRoute);
+// app.use("/api/v1", ApplicationRootRoute);
 
 //Root Route-----------
 app.get("/", (req: Request, res: Response) => {
