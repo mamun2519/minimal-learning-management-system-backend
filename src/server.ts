@@ -2,11 +2,12 @@ import mongoose from "mongoose";
 import app from "./app";
 import { Server } from "http";
 import config from "./config";
+import databaseConnection from "./config/db";
 
 const serverBootstrap = async () => {
   try {
-    await mongoose.connect(config.database_url as string);
-    console.log("Database connected successfully");
+    // Database connection
+    await databaseConnection();
     const server: Server = app.listen(config.port, () => {
       console.log(`Server is running on port ${config.port}`);
     });
