@@ -1,12 +1,16 @@
 //Auth Guard
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { jwtHelpers } from "../helpers/jwtHelper";
+import { Secret } from "jsonwebtoken";
+import ApiError from "../error/apiError";
+import config from "../config";
 
 const Authentication =
   (...requiredRoles: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const token = req?.cookies?.token as string;
+      const token = req?.headers?.token as string;
 
       if (!token) {
         return next(
@@ -51,3 +55,5 @@ const Authentication =
       );
     }
   };
+
+export default Authentication;
