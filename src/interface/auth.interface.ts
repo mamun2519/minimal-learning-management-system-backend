@@ -9,6 +9,8 @@ export type IAuthUser = {
 };
 
 export type AuthModel = Model<IAuthUser>;
-export type AuthUserWithToken = IAuthUser & {
+
+export type AuthUserWithToken = {
+  user: IAuthUser;
   token: string;
 };

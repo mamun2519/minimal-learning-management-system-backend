@@ -5,6 +5,7 @@ import helmet from "helmet";
 import { corsMethods, corsOptions } from "./constants/origin";
 import { ApplicationRootRoute } from "./routes/root.route";
 import notFoundAPI from "./middlewares/notFound";
+import globalErrorHandler from "./middlewares/globalErrorHandler";
 
 const app: Application = express();
 
@@ -24,7 +25,7 @@ app.use(
 app.use(helmet.xssFilter());
 
 // Application Route---------------
-// app.use("/api/v1", ApplicationRootRoute);
+app.use("/api/v1", ApplicationRootRoute);
 
 //Root Route-----------
 app.get("/", (req: Request, res: Response) => {
@@ -36,5 +37,5 @@ app.get("/", (req: Request, res: Response) => {
 app.use(notFoundAPI);
 
 // handle global error
-// app.use(globalErrorHandler);
+app.use(globalErrorHandler);
 export default app;

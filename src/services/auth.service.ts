@@ -13,7 +13,7 @@ const registerUserIntoDB = async (
   if (isExitUser) {
     throw new ApiError(400, "User already exists with this email");
   }
-  const hashPassword = hashHelper.generateHash(user.password);
+  const hashPassword = await hashHelper.generateHash(user.password);
   const newUser = await Auth.create({
     ...user,
     password: hashPassword,
@@ -30,7 +30,7 @@ const registerUserIntoDB = async (
   );
 
   return {
-    ...newUser.toObject(),
+    user: newUser.toObject(),
     token: accessToken,
   };
 };
@@ -62,7 +62,7 @@ const loginUserFromDB = async (
   );
 
   return {
-    ...isExitUser.toObject(),
+    user: isExitUser.toObject(),
     token: accessToken,
   };
 };

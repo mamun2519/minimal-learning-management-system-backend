@@ -1,8 +1,14 @@
 import bcrypt from "bcrypt";
+import config from "../config";
 
-const generateHash = (password: string): string => {
-  const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
-  return bcrypt.hashSync(password, saltRounds);
+const generateHash = (password: string): any => {
+  const saltRounds = parseInt(config.bycrypt_salt_rounds || "10", 10);
+  if (isNaN(saltRounds)) {
+    throw new Error("Invalid bcrypt salt rounds configuration");
+  }
+  console.log(password);
+  console.log("Salt Rounds:", saltRounds);
+  return bcrypt.hash(password, saltRounds);
 };
 
 const compareHash = (password: string, hash: string): boolean => {
