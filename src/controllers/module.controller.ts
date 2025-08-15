@@ -2,6 +2,22 @@ import { ModuleServices } from "../services/module.services";
 import catchAsync from "../shared/catchAsync";
 import sendResponse from "../shared/sendResponse";
 
+const insertModuleAndLecture = catchAsync(async (req, res) => {
+  const moduleData = JSON.parse(req.body.module);
+  const lectureData = JSON.parse(req.body.lectures);
+  const result = await ModuleServices.insertModuleAndLectureIntoDB(
+    req,
+    moduleData,
+    lectureData
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Module and Lectures created successfully",
+    data: result,
+  });
+});
+
 const getAllModules = catchAsync(async (req, res) => {
   const module = await ModuleServices.getAllModuleFromDB();
   sendResponse(res, {
@@ -47,4 +63,5 @@ export const ModuleController = {
   getModuleById,
   deleteModule,
   getAllModulesByCourseId,
+  insertModuleAndLecture,
 };

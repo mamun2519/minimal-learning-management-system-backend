@@ -6,6 +6,8 @@ import { Module } from "../models/module.model";
 import { Course } from "../models/course.model";
 import { StatusCodes } from "http-status-codes";
 import cloudinary from "../config/cloudinary";
+import mongoose from "mongoose";
+import { Lecture } from "../models/lecture.model";
 
 // const insertModuleAndLectureIntoDB = async (
 //   req: Request,
@@ -70,8 +72,6 @@ export const insertModuleAndLectureIntoDB = async (
     const newModule = await Module.create([module], { session });
     const moduleId = newModule[0]._id;
 
-    // Attach files to lectures based on your matching logic
-    // Here, assuming all uploaded files are pdfNotes for now
     const lectureDocs = lectures.map((lec) => ({
       ...lec,
       moduleId,
@@ -121,4 +121,5 @@ export const ModuleServices = {
   getAllModuleFromDB,
   getAllModuleByCourseId,
   getModuleByIdFromDb,
+  insertModuleAndLectureIntoDB,
 };
