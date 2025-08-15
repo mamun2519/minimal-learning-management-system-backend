@@ -68,8 +68,19 @@ export const insertModuleAndLectureIntoDB = async (
       })
     );
 
+    // Find last moduleNumber for this course
+    const lastModule = await Module.findOne({ courseId: module.courseId })
+      .sort({ moduleNumber: -1 }) // Highest first
+      .select("moduleNumber")
+      .session(session);
+
+    const nextModuleNumber = lastModule ? lastModule.moduleNumber + 1 : 1;
+
     // Create Module
-    const newModule = await Module.create([module], { session });
+    const newModule = await Module.create(
+      [{ ...module, moduleNumber: nextModuleNumber }],
+      { session }
+    );
     const moduleId = newModule[0]._id;
 
     const lectureDocs = lectures.map((lec) => ({
@@ -116,10 +127,21 @@ const deleteModuleFromDb = async (id: string): Promise<IModule | null> => {
   return modules;
 };
 
+const updateModuleByIdIntoDB = async (
+  id: string,
+  data: Partial<IModule>
+): Promise<IModule> => {
+  const result = await Module.findByIdAndUpdate(id, data, { new: true });
+  if (!result) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Module Does Not Found");
+  }
+  return result;
+};
 export const ModuleServices = {
   deleteModuleFromDb,
   getAllModuleFromDB,
   getAllModuleByCourseId,
   getModuleByIdFromDb,
   insertModuleAndLectureIntoDB,
+  updateModuleByIdIntoDB,
 };
