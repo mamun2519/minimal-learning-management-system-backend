@@ -28,7 +28,7 @@ const getAllLectures = catchAsync(async (req, res) => {
   const filters = {
     courseId: req.query.courseId as string | undefined,
     moduleId: req.query.moduleId as string | undefined,
-    search: req.query.search as string | undefined,
+    search: req.query.searchTerm as string | undefined,
   };
   const lecture = await LectureServices.getAllLectures(filters);
   sendResponse(res, {
