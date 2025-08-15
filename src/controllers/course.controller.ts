@@ -1,5 +1,8 @@
+import { courseFilterableFields } from "../constants/course";
+import { paginationFiled } from "../constants/pagination";
 import { CourseService } from "../services/course.services";
 import catchAsync from "../shared/catchAsync";
+import pick from "../shared/pick";
 import sendResponse from "../shared/sendResponse";
 
 const insertCourse = catchAsync(async (req, res) => {
@@ -13,7 +16,12 @@ const insertCourse = catchAsync(async (req, res) => {
 });
 
 const getAllCourses = catchAsync(async (req, res) => {
-  const courses = await CourseService.getAllCoursesFromDb();
+  const filters = pick(req.query, courseFilterableFields);
+  const paginationOptions = pick(req.query, paginationFiled);
+  const courses = await CourseService.getAllCoursesFromDb(
+    filters,
+    paginationOptions
+  );
   sendResponse(res, {
     statusCode: 200,
     success: true,

@@ -12,3 +12,8 @@ export type ICourse = {
 };
 
 export type CourseModel = Model<ICourse>;
+
+export type ICourseFilters = {
+  searchTerm?: string;
+  title?: string;
+};
