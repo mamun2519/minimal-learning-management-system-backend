@@ -58,10 +58,23 @@ const deleteModule = catchAsync(async (req, res) => {
   });
 });
 
+const moduleUpdateById = catchAsync(async (req, res) => {
+  const module = await ModuleServices.updateModuleByIdIntoDB(
+    req.params.id,
+    req.body
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Module Update  successfully",
+    data: module,
+  });
+});
 export const ModuleController = {
   getAllModules,
   getModuleById,
   deleteModule,
   getAllModulesByCourseId,
   insertModuleAndLecture,
+  moduleUpdateById,
 };

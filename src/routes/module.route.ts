@@ -13,5 +13,6 @@ router.get("/", ModuleController.getAllModules);
 router.get("/:id/courses", ModuleController.getAllModulesByCourseId);
 router.delete("/:id", ModuleController.deleteModule);
 router.get("/:id", ModuleController.getModuleById);
+router.put("/:id", ModuleController.moduleUpdateById);
 
 export const ModuleRoute = router;
