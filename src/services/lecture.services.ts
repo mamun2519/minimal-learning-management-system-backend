@@ -5,8 +5,9 @@ import { Lecture } from "../models/lecture.model";
 import { StatusCodes } from "http-status-codes";
 import { Request } from "express";
 import cloudinary from "../config/cloudinary";
+import { Module } from "../models/module.model";
 
-export const updateLectureIntoDB = async (
+const updateLectureIntoDB = async (
   req: Request,
   lectureId: string,
   lectureData: Partial<ILecture>
@@ -60,6 +61,42 @@ export const updateLectureIntoDB = async (
     throw error;
   }
 };
+const getAllLectures = async (filters: {
+  courseId?: string;
+  moduleId?: string;
+  search?: string;
+}) => {
+  const { courseId, moduleId, search } = filters;
+
+  let moduleIds: string[] = [];
+
+  if (moduleId) {
+    moduleIds = [moduleId];
+  } else if (courseId) {
+    const modules = await Module.find({ courseId }).select("_id");
+    if (!modules.length) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "No modules found for this course"
+      );
+    }
+    moduleIds = modules.map((m) => m._id.toString());
+  }
+
+  // lecture query
+  const query: any = {};
+  if (moduleIds.length > 0) query.moduleId = { $in: moduleIds };
+  if (search) query.title = { $regex: search, $options: "i" };
+
+  const lectures = await Lecture.find(query)
+    .sort({ createdAt: -1 })
+    .populate("moduleId", "title moduleNumber")
+    .populate("courseId", "title")
+    .exec();
+
+  return lectures;
+};
+
 const getAllLectureFromDB = async (): Promise<ILecture[]> => {
   const lecture: ILecture[] = await Lecture.find({});
   return lecture;
