@@ -2,6 +2,27 @@ import { LectureServices } from "../services/lecture.services";
 import catchAsync from "../shared/catchAsync";
 import sendResponse from "../shared/sendResponse";
 
+export const updateLectureById = catchAsync(async (req, res, next) => {
+  try {
+    const lectureId = req.params.id;
+    const lectureData = JSON.parse(req.body.lecture);
+
+    const updatedLecture = await LectureServices.updateLectureIntoDB(
+      req,
+      lectureId,
+      lectureData
+    );
+
+    sendResponse(res, {
+      statusCode: 201,
+      success: true,
+      message: "Lecture updated successfully",
+      data: updatedLecture,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 const getAllLectures = catchAsync(async (req, res) => {
   const lecture = await LectureServices.getAllLectureFromDB();
   sendResponse(res, {
@@ -47,4 +68,5 @@ export const LectureController = {
   getLectureById,
   deleteLecture,
   getAllLecturesByModuleId,
+  updateLectureById,
 };
