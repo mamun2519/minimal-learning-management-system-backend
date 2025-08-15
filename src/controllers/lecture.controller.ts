@@ -2,7 +2,7 @@ import { LectureServices } from "../services/lecture.services";
 import catchAsync from "../shared/catchAsync";
 import sendResponse from "../shared/sendResponse";
 
-export const updateLectureById = catchAsync(async (req, res, next) => {
+const updateLectureById = catchAsync(async (req, res, next) => {
   try {
     const lectureId = req.params.id;
     const lectureData = JSON.parse(req.body.lecture);
@@ -23,8 +23,14 @@ export const updateLectureById = catchAsync(async (req, res, next) => {
     next(error);
   }
 });
+
 const getAllLectures = catchAsync(async (req, res) => {
-  const lecture = await LectureServices.getAllLectureFromDB();
+  const filters = {
+    courseId: req.query.courseId as string | undefined,
+    moduleId: req.query.moduleId as string | undefined,
+    search: req.query.search as string | undefined,
+  };
+  const lecture = await LectureServices.getAllLectures(filters);
   sendResponse(res, {
     statusCode: 200,
     success: true,

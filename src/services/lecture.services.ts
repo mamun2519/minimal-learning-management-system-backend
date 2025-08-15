@@ -101,6 +101,7 @@ const getAllLectureFromDB = async (): Promise<ILecture[]> => {
   const lecture: ILecture[] = await Lecture.find({});
   return lecture;
 };
+
 const getAllLectureByModuleId = async (
   moduleId: string
 ): Promise<ILecture[]> => {
@@ -130,4 +131,5 @@ export const LectureServices = {
   getAllLectureByModuleId,
   getLectureByIdFromDb,
   updateLectureIntoDB,
+  getAllLectures,
 };
