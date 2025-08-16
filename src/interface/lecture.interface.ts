@@ -7,7 +7,7 @@ export type ILecture = {
   courseId: ObjectId | ICourse;
   moduleId: ObjectId | IModule;
   title: string;
-  order: number;
+  order?: number;
   videoURl: string;
   pdfNotes: IPDFNotes[];
 };

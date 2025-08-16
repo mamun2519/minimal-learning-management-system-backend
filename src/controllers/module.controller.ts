@@ -4,7 +4,11 @@ import sendResponse from "../shared/sendResponse";
 
 const insertModuleAndLecture = catchAsync(async (req, res) => {
   const moduleData = JSON.parse(req.body.module);
-  const lectureData = JSON.parse(req.body.lectures);
+
+  const lectureData = Array.isArray(req.body.lectures)
+    ? req.body.lectures.map((lecture: string) => JSON.parse(lecture))
+    : [JSON.parse(req.body.lectures)];
+
   const result = await ModuleServices.insertModuleAndLectureIntoDB(
     req,
     moduleData,

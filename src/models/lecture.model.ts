@@ -16,7 +16,7 @@ const lectureSchema = new Schema<ILecture, LectureModel>(
 
     order: {
       type: Number,
-      required: [true, "Order is required"],
+      required: [false, "Order is required"],
     },
 
     courseId: {
