@@ -1,5 +1,8 @@
+import { lectureFilterableFields } from "../constants/module";
+import { paginationFiled } from "../constants/pagination";
 import { ModuleServices } from "../services/module.services";
 import catchAsync from "../shared/catchAsync";
+import pick from "../shared/pick";
 import sendResponse from "../shared/sendResponse";
 
 const insertModuleAndLecture = catchAsync(async (req, res) => {
@@ -23,7 +26,12 @@ const insertModuleAndLecture = catchAsync(async (req, res) => {
 });
 
 const getAllModules = catchAsync(async (req, res) => {
-  const module = await ModuleServices.getAllModuleFromDB();
+  const filters = pick(req.query, lectureFilterableFields);
+  const paginationOptions = pick(req.query, paginationFiled);
+  const module = await ModuleServices.getAllModuleFromDB(
+    filters,
+    paginationOptions
+  );
   sendResponse(res, {
     statusCode: 200,
     success: true,

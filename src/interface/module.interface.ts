@@ -9,3 +9,8 @@ export type IModule = {
 };
 
 export type ModuleModel = Model<IModule>;
+
+export type IModuleFilters = {
+  searchTerm?: string;
+  title?: string;
+};

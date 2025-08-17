@@ -1,13 +1,17 @@
 import { Request } from "express";
 import ApiError from "../error/apiError";
 import { ILecture } from "../interface/lecture.interface";
-import { IModule } from "../interface/module.interface";
+import { IModule, IModuleFilters } from "../interface/module.interface";
 import { Module } from "../models/module.model";
 import { Course } from "../models/course.model";
 import { StatusCodes } from "http-status-codes";
 import cloudinary from "../config/cloudinary";
-import mongoose from "mongoose";
+import mongoose, { SortOrder } from "mongoose";
 import { Lecture } from "../models/lecture.model";
+import { IPaginationOptions } from "../interface/paginaton";
+import { paginationHelpers } from "../helpers/paginationHelper";
+import { lectureSearchableFields } from "../constants/module";
+import { IGenericResponse } from "../interface/common";
 
 // const insertModuleAndLectureIntoDB = async (
 //   req: Request,
@@ -102,9 +106,54 @@ export const insertModuleAndLectureIntoDB = async (
     throw error;
   }
 };
-const getAllModuleFromDB = async (): Promise<IModule[]> => {
-  const modules: IModule[] = await Module.find({});
-  return modules;
+const getAllModuleFromDB = async (
+  filters: IModuleFilters,
+  paginationOptions: IPaginationOptions
+): Promise<IGenericResponse<IModule[]>> => {
+  const { searchTerm, ...filtersData } = filters;
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelpers.calculatePagination(paginationOptions);
+
+  const andConditions = [];
+  if (searchTerm) {
+    andConditions.push({
+      $or: lectureSearchableFields.map((field) => ({
+        [field]: {
+          $regex: searchTerm,
+          $options: "i",
+        },
+      })),
+    });
+  }
+  // Filters needs $and to fullfill all the conditions
+  if (Object.keys(filtersData).length) {
+    andConditions.push({
+      $and: Object.entries(filtersData).map(([field, value]) => ({
+        [field]: value,
+      })),
+    });
+  }
+
+  const sortConditions: { [key: string]: SortOrder } = {};
+  if (sortBy && sortOrder) {
+    sortConditions[sortBy] = sortOrder;
+  }
+  const whereConditions =
+    andConditions.length > 0 ? { $and: andConditions } : {};
+
+  const result = await Module.find(whereConditions)
+    .skip(skip)
+    .limit(limit)
+    .sort(sortConditions);
+  const total = await Module.countDocuments(whereConditions);
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
 };
 const getAllModuleByCourseId = async (courseId: string): Promise<IModule[]> => {
   const modules: IModule[] = await Module.find({ courseId });
