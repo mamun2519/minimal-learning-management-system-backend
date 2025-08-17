@@ -25,7 +25,7 @@ const enrolledCourseSchema = new Schema<IEnrolledCourse, EnrolledCourseModel>(
   }
 );
 
-export const UserProgress = model<IEnrolledCourse, EnrolledCourseModel>(
+export const EnrolledCourse = model<IEnrolledCourse, EnrolledCourseModel>(
   "EnrolledCourse",
   enrolledCourseSchema
 );
