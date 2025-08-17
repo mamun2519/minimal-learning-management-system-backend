@@ -71,6 +71,7 @@ const deleteModule = catchAsync(async (req, res) => {
 });
 
 const moduleUpdateById = catchAsync(async (req, res) => {
+  console.log("req.body", req.body);
   const module = await ModuleServices.updateModuleByIdIntoDB(
     req.params.id,
     req.body

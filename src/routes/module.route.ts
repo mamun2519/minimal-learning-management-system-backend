@@ -3,6 +3,7 @@ import { ModuleController } from "../controllers/module.controller";
 import { FileUploadConfig } from "../utilis/multer";
 
 const router = express.Router();
+router.put("/:id", ModuleController.moduleUpdateById);
 
 router.post(
   "/insert",
@@ -13,6 +14,5 @@ router.get("/", ModuleController.getAllModules);
 router.get("/:id/courses", ModuleController.getAllModulesByCourseId);
 router.delete("/:id", ModuleController.deleteModule);
 router.get("/:id", ModuleController.getModuleById);
-router.put("/:id", ModuleController.moduleUpdateById);
 
 export const ModuleRoute = router;
