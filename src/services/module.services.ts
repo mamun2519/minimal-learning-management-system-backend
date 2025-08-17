@@ -142,6 +142,7 @@ const getAllModuleFromDB = async (
     andConditions.length > 0 ? { $and: andConditions } : {};
 
   const result = await Module.find(whereConditions)
+    .populate("courseId", "title")
     .skip(skip)
     .limit(limit)
     .sort(sortConditions);
