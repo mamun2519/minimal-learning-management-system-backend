@@ -14,3 +14,13 @@ const enrolledIntoTheCourse = async (
   const result = await EnrolledCourse.create(payload);
   return result;
 };
+
+const getMyAllCourse = async (userId: string): Promise<IEnrolledCourse[]> => {
+  const result = await EnrolledCourse.find({ userId }).populate("courseId");
+  return result;
+};
+
+export const EnrolledCourseServices = {
+  enrolledIntoTheCourse,
+  getMyAllCourse,
+};
