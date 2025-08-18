@@ -6,6 +6,7 @@ import { StatusCodes } from "http-status-codes";
 import { Request } from "express";
 import cloudinary from "../config/cloudinary";
 import { Module } from "../models/module.model";
+import { UserProgress } from "../models/progress.model";
 
 const updateLectureIntoDB = async (
   req: Request,
@@ -125,6 +126,107 @@ const deleteLectureFromDb = async (id: string): Promise<ILecture | null> => {
   return lecture;
 };
 
+// const getModulesWithLectures = async (filters: {
+//   courseId?: string;
+//   moduleId?: string;
+//   search?: string;
+// }) => {
+//   const { courseId, moduleId, search } = filters;
+
+//   let moduleQuery: any = {};
+//   if (moduleId) {
+//     moduleQuery._id = moduleId;
+//   } else if (courseId) {
+//     moduleQuery.courseId = courseId;
+//   }
+
+//   // 1️⃣ Find all modules (optionally filtered)
+//   const modules = await Module.find(moduleQuery)
+//     .sort({ moduleNumber: 1 })
+//     .lean();
+
+//   if (!modules.length) {
+//     throw new ApiError(StatusCodes.NOT_FOUND, "No modules found");
+//   }
+
+//   // 2️⃣ For each module, fetch its lectures
+//   const moduleWithLectures = await Promise.all(
+//     modules.map(async (mod) => {
+//       const lectureQuery: any = { moduleId: mod._id };
+//       if (search) lectureQuery.title = { $regex: search, $options: "i" };
+
+//       const lectures = await Lecture.find(lectureQuery)
+//         .sort({ createdAt: -1 })
+//         .lean();
+
+//       return {
+//         ...mod,
+//         lectures,
+//       };
+//     })
+//   );
+
+//   return moduleWithLectures;
+// };
+
+const getModulesWithLecturesAndProgress = async (filters: {
+  courseId: string;
+  moduleId?: string;
+  search?: string;
+  userId: string;
+}) => {
+  const { courseId, moduleId, search, userId } = filters;
+
+  // 1️⃣ Fetch modules
+  const moduleQuery: any = {};
+  if (moduleId) {
+    moduleQuery._id = moduleId;
+  } else if (courseId) {
+    moduleQuery.courseId = courseId;
+  }
+
+  const modules = await Module.find(moduleQuery)
+    .sort({ moduleNumber: 1 })
+    .lean();
+
+  if (!modules.length) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "No modules found");
+  }
+
+  // 2️⃣ Get user progress
+  const userProgress = await UserProgress.findOne({ courseId, userId }).lean();
+  const completedLectureIds =
+    userProgress?.completedLectures?.map((id) => id.toString()) || [];
+
+  // 3️⃣ Attach lectures with progress
+  const moduleWithLectures = await Promise.all(
+    modules.map(async (mod) => {
+      const lectureQuery: any = { moduleId: mod._id };
+      if (search) lectureQuery.title = { $regex: search, $options: "i" };
+
+      const lectures = await Lecture.find(lectureQuery)
+        .sort({ createdAt: 1 }) // ascending, so first one is index 0
+        .lean();
+
+      // decorate lectures with progress
+      const lecturesWithProgress = lectures.map((lec, idx) => {
+        return {
+          ...lec,
+          isCompleted: completedLectureIds.includes(lec._id.toString()),
+          isUnlocked: idx === 0, // only first lecture is unlocked
+        };
+      });
+
+      return {
+        ...mod,
+        lectures: lecturesWithProgress,
+      };
+    })
+  );
+
+  return moduleWithLectures;
+};
+
 export const LectureServices = {
   deleteLectureFromDb,
   getAllLectureFromDB,
@@ -132,4 +234,6 @@ export const LectureServices = {
   getLectureByIdFromDb,
   updateLectureIntoDB,
   getAllLectures,
+  // getModulesWithLectures,
+  getModulesWithLecturesAndProgress,
 };

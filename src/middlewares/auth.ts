@@ -10,7 +10,8 @@ const Authentication =
   (...requiredRoles: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const token = req?.headers?.token as string;
+      const token = req?.headers?.authorization as string;
+      console.log("token", token);
 
       if (!token) {
         return next(

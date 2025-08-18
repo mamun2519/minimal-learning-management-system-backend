@@ -11,9 +11,7 @@ router.put("/:id", FileUploadConfig.upload.single("file"), (req, res, next) => {
 });
 router.post("/", FileUploadConfig.upload.single("file"), (req, res, next) => {
   const parsedData = JSON.parse(req.body.data);
-  console.log("Parsed Data:", parsedData);
-  console.log("File Info:", req.file);
-  console.log("Request Body:", req.body);
+
   req.body = CourseValidation.insertCourseValidation.parse(parsedData);
 
   return CourseController.insertCourse(req, res, next);

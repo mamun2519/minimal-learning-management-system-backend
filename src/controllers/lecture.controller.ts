@@ -1,6 +1,8 @@
+import { StatusCodes } from "http-status-codes";
 import { LectureServices } from "../services/lecture.services";
 import catchAsync from "../shared/catchAsync";
 import sendResponse from "../shared/sendResponse";
+import { JwtPayload } from "jsonwebtoken";
 
 const updateLectureById = catchAsync(async (req, res, next) => {
   try {
@@ -30,6 +32,7 @@ const getAllLectures = catchAsync(async (req, res) => {
     moduleId: req.query.moduleId as string | undefined,
     search: req.query.searchTerm as string | undefined,
   };
+  console.log("filters", filters);
   const lecture = await LectureServices.getAllLectures(filters);
   sendResponse(res, {
     statusCode: 200,
@@ -40,7 +43,9 @@ const getAllLectures = catchAsync(async (req, res) => {
 });
 
 const getAllLecturesByModuleId = catchAsync(async (req, res) => {
+  console.log("req.params.id", req.params.id);
   const lecture = await LectureServices.getAllLectureByModuleId(req.params.id);
+  console.log("lecture", lecture);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -69,10 +74,31 @@ const deleteLecture = catchAsync(async (req, res) => {
   });
 });
 
+const getCourseModulesWithLectures = catchAsync(async (req, res) => {
+  const user = (req as JwtPayload).user;
+  const userId = user.id;
+  const { courseId, moduleId, search } = req.query;
+  console.log("courseId", courseId);
+  const result = await LectureServices.getModulesWithLecturesAndProgress({
+    courseId: courseId as string,
+    moduleId: moduleId as string,
+    search: search as string,
+    userId: userId as string,
+  });
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Modules with lectures retrieved successfully",
+    data: result,
+  });
+});
+
 export const LectureController = {
   getAllLectures,
   getLectureById,
   deleteLecture,
   getAllLecturesByModuleId,
   updateLectureById,
+  getCourseModulesWithLectures,
 };
