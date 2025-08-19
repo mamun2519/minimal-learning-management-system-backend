@@ -1,5 +1,5 @@
 export const corsOptions = [
-  "https://minimal-learning-management-system-nine.vercel.app/",
+  "https://minimal-learning-management-system-nine.vercel.app",
   "http://localhost:3000",
 ];
 

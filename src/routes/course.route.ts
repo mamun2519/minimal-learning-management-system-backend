@@ -4,8 +4,8 @@ import { CourseValidation } from "../validation/course.validaiton";
 import { CourseController } from "../controllers/course.controller";
 const router = express.Router();
 router.put("/:id", FileUploadConfig.upload.single("file"), (req, res, next) => {
-  // const parsedData = JSON.parse(req.body.data);
-  const parsedData = req.body;
+  const parsedData = JSON.parse(req.body.data);
+  // const parsedData = req.body;
   req.body = CourseValidation.updateCourseValidation.parse(parsedData);
 
   return CourseController.updateCourse(req, res, next);

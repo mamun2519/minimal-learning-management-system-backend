@@ -5,7 +5,7 @@ import { IModule, IModuleFilters } from "../interface/module.interface";
 import { Module } from "../models/module.model";
 import { Course } from "../models/course.model";
 import { StatusCodes } from "http-status-codes";
-import cloudinary from "../config/cloudinary";
+import cloudinary, { uploadToCloudinary } from "../config/cloudinary";
 import mongoose, { SortOrder } from "mongoose";
 import { Lecture } from "../models/lecture.model";
 import { IPaginationOptions } from "../interface/paginaton";
@@ -61,12 +61,14 @@ export const insertModuleAndLectureIntoDB = async (
     // Upload files to Cloudinary
     const uploadedFiles = await Promise.all(
       (req.files as Express.Multer.File[]).map(async (file) => {
-        const uploaded = await cloudinary.uploader.upload(file.path, {
-          folder: "lms_uploads",
-          resource_type: "auto",
-        });
+        // const uploaded = await cloudinary.uploader.upload(file.path, {
+        //   folder: "lms_uploads",
+        //   resource_type: "auto",
+        // });
+
+        const uploaded: any = await uploadToCloudinary(file.path as any);
         return {
-          url: uploaded.secure_url,
+          url: uploaded.url,
           key: uploaded.public_id,
         };
       })

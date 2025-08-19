@@ -4,7 +4,7 @@ import { ILecture } from "../interface/lecture.interface";
 import { Lecture } from "../models/lecture.model";
 import { StatusCodes } from "http-status-codes";
 import { Request } from "express";
-import cloudinary from "../config/cloudinary";
+import cloudinary, { uploadToCloudinary } from "../config/cloudinary";
 import { Module } from "../models/module.model";
 import { UserProgress } from "../models/progress.model";
 
@@ -26,13 +26,14 @@ const updateLectureIntoDB = async (
     let uploadedFiles: any = [];
     if (req.files && (req.files as Express.Multer.File[]).length > 0) {
       uploadedFiles = await Promise.all(
-        (req.files as Express.Multer.File[]).map(async (file) => {
-          const uploaded = await cloudinary.uploader.upload(file.path, {
-            folder: "lms_uploads",
-            resource_type: "auto",
-          });
+        (req.files as Express.Multer.File[]).map(async (file: any) => {
+          // const uploaded = await cloudinary.uploader.upload(file.path, {
+          //   folder: "lms_uploads",
+          //   resource_type: "auto",
+          // });
+          const uploaded: any = await uploadToCloudinary(file.path as any);
           return {
-            url: uploaded.secure_url,
+            url: uploaded.url,
             key: uploaded.public_id,
           };
         })

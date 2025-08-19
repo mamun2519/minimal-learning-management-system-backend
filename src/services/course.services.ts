@@ -1,13 +1,14 @@
 import { Request } from "express";
 import { ICourse, ICourseFilters } from "../interface/course.interface";
 import ApiError from "../error/apiError";
-import cloudinary from "../config/cloudinary";
+import cloudinary, { uploadToCloudinary } from "../config/cloudinary";
 import { Course } from "../models/course.model";
 import { IPaginationOptions } from "../interface/paginaton";
 import { paginationHelpers } from "../helpers/paginationHelper";
 import { courseSearchableFields } from "../constants/course";
 import { SortOrder } from "mongoose";
 import { IGenericResponse } from "../interface/common";
+import { uploadToBlob } from "../utilis/multer";
 
 const insertCourseInToDb = async (req: Request): Promise<ICourse> => {
   const fileData = req.file;
@@ -16,10 +17,12 @@ const insertCourseInToDb = async (req: Request): Promise<ICourse> => {
     throw new ApiError(201, "File is required");
   }
 
-  const uploadFile = await cloudinary.uploader.upload(fileData.path, {
-    folder: "lms_uploads",
-    resource_type: "auto",
-  });
+  // const uploadFile = await cloudinary.uploader.upload(fileData.path, {
+  //   folder: "lms_uploads",
+  //   resource_type: "auto",
+  // });
+  const uploadFile: any = await uploadToCloudinary(fileData);
+  console.log(uploadFile);
   if (!uploadFile) {
     throw new ApiError(500, "Failed to upload file to Cloudinary");
   }
@@ -29,8 +32,8 @@ const insertCourseInToDb = async (req: Request): Promise<ICourse> => {
     description: courseData.description,
     price: courseData.price,
     file: {
-      url: uploadFile.secure_url,
-      key: uploadFile.public_id,
+      url: uploadFile.url as string,
+      key: uploadFile.public_id as string,
     },
   };
   const newCourse = await Course.create(course);
@@ -111,16 +114,18 @@ const updateCourseInDb = async (
   courseData: Partial<ICourse>
 ): Promise<ICourse | null> => {
   const fileData = req.file;
+  console.log("courseData", courseData);
   if (fileData) {
-    const uploadFile = await cloudinary.uploader.upload(fileData.path, {
-      folder: "lms_uploads",
-      resource_type: "auto",
-    });
+    // const uploadFile = await cloudinary.uploader.upload(fileData.path, {
+    //   folder: "lms_uploads",
+    //   resource_type: "auto",
+    // });
+    const uploadFile: any = await uploadToCloudinary(fileData);
 
     const updateCourse = {
       ...courseData,
       file: {
-        url: uploadFile.secure_url,
+        url: uploadFile.url,
         key: uploadFile.public_id,
       },
     };
