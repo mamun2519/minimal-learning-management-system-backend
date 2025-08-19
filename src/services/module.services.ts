@@ -181,13 +181,11 @@ const updateModuleByIdIntoDB = async (
   id: string,
   data: Partial<IModule>
 ): Promise<IModule> => {
-  console.log("id", id);
-  console.log("data", data);
   const result = await Module.findByIdAndUpdate(id, data, { new: true });
   if (!result) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Module Does Not Found");
   }
-  console.log("result", result);
+
   return result;
 };
 export const ModuleServices = {

@@ -32,7 +32,6 @@ const getAllLectures = catchAsync(async (req, res) => {
     moduleId: req.query.moduleId as string | undefined,
     search: req.query.searchTerm as string | undefined,
   };
-  console.log("filters", filters);
   const lecture = await LectureServices.getAllLectures(filters);
   sendResponse(res, {
     statusCode: 200,
@@ -43,9 +42,8 @@ const getAllLectures = catchAsync(async (req, res) => {
 });
 
 const getAllLecturesByModuleId = catchAsync(async (req, res) => {
-  console.log("req.params.id", req.params.id);
   const lecture = await LectureServices.getAllLectureByModuleId(req.params.id);
-  console.log("lecture", lecture);
+
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -78,7 +76,7 @@ const getCourseModulesWithLectures = catchAsync(async (req, res) => {
   const user = (req as JwtPayload).user;
   const userId = user.id;
   const { courseId, moduleId, search } = req.query;
-  console.log("courseId", courseId);
+
   const result = await LectureServices.getModulesWithLecturesAndProgress({
     courseId: courseId as string,
     moduleId: moduleId as string,

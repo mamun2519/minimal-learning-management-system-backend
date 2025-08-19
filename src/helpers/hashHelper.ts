@@ -6,8 +6,7 @@ const generateHash = (password: string): any => {
   if (isNaN(saltRounds)) {
     throw new Error("Invalid bcrypt salt rounds configuration");
   }
-  console.log(password);
-  console.log("Salt Rounds:", saltRounds);
+
   return bcrypt.hash(password, saltRounds);
 };
 
