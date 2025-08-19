@@ -5,7 +5,7 @@ import { IModule, IModuleFilters } from "../interface/module.interface";
 import { Module } from "../models/module.model";
 import { Course } from "../models/course.model";
 import { StatusCodes } from "http-status-codes";
-import cloudinary, { uploadToCloudinary } from "../config/cloudinary";
+import cloudinary, { uploadBufferToCloudinary } from "../config/cloudinary";
 import mongoose, { SortOrder } from "mongoose";
 import { Lecture } from "../models/lecture.model";
 import { IPaginationOptions } from "../interface/paginaton";
@@ -41,6 +41,73 @@ import { IGenericResponse } from "../interface/common";
 //   }
 // };
 
+// export const insertModuleAndLectureIntoDB = async (
+//   req: Request,
+//   module: IModule,
+//   lectures: ILecture[]
+// ) => {
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//     const course = await Course.findById(module.courseId).session(session);
+//     if (!course) {
+//       throw new ApiError(
+//         StatusCodes.NOT_FOUND,
+//         "Requested Course Does Not Found"
+//       );
+//     }
+//     console.log(module);
+//     console.log(req.files);
+//     // Upload files to Cloudinary
+//     const uploadedFiles = await Promise.all(
+//       (req.files as Express.Multer.File[]).map(async (file) => {
+//         const uploaded = await cloudinary.uploader.upload(file.path, {
+//           folder: "lms_uploads",
+//           resource_type: "auto",
+//         });
+//         return {
+//           url: uploaded.secure_url,
+//           key: uploaded.public_id,
+//         };
+//       })
+//     );
+
+//     // Find last moduleNumber for this course
+//     const lastModule = await Module.findOne({ courseId: module.courseId })
+//       .sort({ moduleNumber: -1 }) // Highest first
+//       .select("moduleNumber")
+//       .session(session);
+
+//     const nextModuleNumber = lastModule ? lastModule.moduleNumber + 1 : 1;
+
+//     // Create Module
+//     const newModule = await Module.create(
+//       [{ ...module, moduleNumber: nextModuleNumber }],
+//       { session }
+//     );
+//     const moduleId = newModule[0]._id;
+
+//     const lectureDocs = lectures.map((lec) => ({
+//       ...lec,
+//       moduleId,
+//       courseId: module.courseId,
+//       pdfNotes: uploadedFiles,
+//     }));
+
+//     await Lecture.insertMany(lectureDocs, { session });
+
+//     await session.commitTransaction();
+//     session.endSession();
+
+//     return { module: newModule[0], lectures: lectureDocs };
+//   } catch (error) {
+//     await session.abortTransaction();
+//     session.endSession();
+//     throw error;
+//   }
+// };
+
 export const insertModuleAndLectureIntoDB = async (
   req: Request,
   module: IModule,
@@ -58,31 +125,21 @@ export const insertModuleAndLectureIntoDB = async (
       );
     }
 
-    // Upload files to Cloudinary
+    // Upload files to Cloudinary using the helper
     const uploadedFiles = await Promise.all(
-      (req.files as Express.Multer.File[]).map(async (file) => {
-        // const uploaded = await cloudinary.uploader.upload(file.path, {
-        //   folder: "lms_uploads",
-        //   resource_type: "auto",
-        // });
-
-        const uploaded: any = await uploadToCloudinary(file.path as any);
-        return {
-          url: uploaded.url,
-          key: uploaded.public_id,
-        };
-      })
+      (req.files as Express.Multer.File[]).map((file) =>
+        uploadBufferToCloudinary(file.buffer, file.originalname, file.mimetype)
+      )
     );
 
-    // Find last moduleNumber for this course
+    // Rest of your code remains the same...
     const lastModule = await Module.findOne({ courseId: module.courseId })
-      .sort({ moduleNumber: -1 }) // Highest first
+      .sort({ moduleNumber: -1 })
       .select("moduleNumber")
       .session(session);
 
     const nextModuleNumber = lastModule ? lastModule.moduleNumber + 1 : 1;
 
-    // Create Module
     const newModule = await Module.create(
       [{ ...module, moduleNumber: nextModuleNumber }],
       { session }

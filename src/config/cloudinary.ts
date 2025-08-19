@@ -40,6 +40,43 @@ export const uploadToCloudinary = async (
   });
 };
 
+export const uploadBufferToCloudinary = (
+  buffer: Buffer,
+  originalName: string,
+  mimetype: string,
+  folder: string = "lms_uploads"
+): Promise<{
+  url: string;
+  key: string;
+  originalName: string;
+  mimetype: string;
+}> => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: folder,
+        resource_type: "auto",
+        public_id: `${Date.now()}-${originalName.split(".")[0]}`,
+      },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary upload error:", error);
+          reject(error);
+        } else {
+          resolve({
+            url: result!.secure_url,
+            key: result!.public_id,
+            originalName: originalName,
+            mimetype: mimetype,
+          });
+        }
+      }
+    );
+
+    uploadStream.end(buffer);
+  });
+};
+
 export const FileUploadConfig = {
   upload: createMulterUpload(),
   uploadToCloudinary,
