@@ -6,6 +6,7 @@ import { UserProgress } from "../models/progress.model";
 import { Course } from "../models/course.model";
 import { Lecture } from "../models/lecture.model";
 import { IUserProgress } from "../interface/progress.interface";
+import { ICourse } from "../interface/course.interface";
 
 const enrolledIntoTheCourse = async (
   payload: IEnrolledCourse
