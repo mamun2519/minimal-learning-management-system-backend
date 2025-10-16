@@ -2,3 +2,8 @@ name: CI - Lint, Test, and Build
 on:
   push:
     branches: ["development"]
+  pull_request:
+    branches: ["development"]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
