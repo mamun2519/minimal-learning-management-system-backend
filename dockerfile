@@ -11,5 +11,5 @@ RUN npm run build
 FROM node:18-alpine AS runner
 WORKDIR /app
 COPY --from=builder /app ./
-EXPOSE 4000
+EXPOSE 5000
 CMD ["npm", "start"]
