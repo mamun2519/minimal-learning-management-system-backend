@@ -9,7 +9,7 @@ import globalErrorHandler from "./middlewares/globalErrorHandler";
 
 const app: Application = express();
 
-// middleware----------
+// middleware--------
 app.use([express.json(), express.urlencoded({ extended: true })]);
 
 app.use(
