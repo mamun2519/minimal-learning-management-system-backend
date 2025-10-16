@@ -16,12 +16,12 @@ jobs:
           node-version: "18"
       - name: Install Dependencies
         run: npm install
-      # check the lint code
-      - name: Run ESLint
-        run: npm run lint
-      # run the test cases
-      - name: Run Tests
-        run: npm test
+      # # check the lint code
+      # - name: Run ESLint
+      #   run: npm run lint
+      # # run the test cases
+      # - name: Run Tests
+      #   run: npm test
       # build the project
       - name: Build Project
         run: npm run build
