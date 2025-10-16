@@ -6,7 +6,7 @@ import databaseConnection from "./config/db";
 
 const serverBootstrap = async () => {
   try {
-    // Database connection---------
+    // Database connection-----------
     await databaseConnection();
     const server: Server = app.listen(config.port, () => {
       console.log(`Server is running on port ${config.port}`);
