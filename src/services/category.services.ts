@@ -1,3 +1,5 @@
+import { StatusCodes } from "http-status-codes";
+import ApiError from "../error/apiError";
 import { ICategory } from "../interface/category.interface";
 import { Category } from "../models/category.model";
 
@@ -7,13 +9,20 @@ const addCategory = async (category: ICategory): Promise<ICategory> => {
 };
 
 const AddProductTitleBaseOnCategory = async (title: string) => {
-  const allCategory = await Category.find({});
+  const allCategory = await Category.find({
+    or: {
+      $regex: title,
+      $options: "i",
+    },
+  });
 
-  const matchCategory = allCategory.filter(
-    (category) => category.category == title
-  );
+  if (!allCategory.length) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Similor Category not found");
+  }
+  return allCategory;
 };
 
 export const CategoryServices = {
   addCategory,
+  AddProductTitleBaseOnCategory,
 };

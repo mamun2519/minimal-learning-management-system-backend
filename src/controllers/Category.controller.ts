@@ -13,6 +13,17 @@ const addCategory = catchAsync(async (req, res) => {
   });
 });
 
+const AddProductTitleBaseOnCategory = catchAsync(async (req, res) => {
+  const result = await CategoryServices.addCategory(req.body.title);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "fetch match category Successfully.",
+    data: result,
+  });
+});
+
 export const CategoryController = {
   addCategory,
+  AddProductTitleBaseOnCategory,
 };
