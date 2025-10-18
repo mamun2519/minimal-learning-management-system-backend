@@ -13,14 +13,31 @@ jobs:
       # Step 1: Checkout the code
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        # Step 1: Generate changelog from conventional commits4
+      # - name: Create GitHub Release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     tag_name: v${{ github.event.workflow_run.run_number }}
+      #     name: Release v${{ github.event.workflow_run.run_number }}
+      #     body: |
+      #       ## Changes in this release
+      #       - Automated release based on successful Docker image build.
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate Changelog
         with:
-          tag_name: v${{ github.event.workflow_run.run_number }}
-          name: Release v${{ github.event.workflow_run.run_number }}
-          body: |
-            ## Changes in this release
-            - Automated release based on successful Docker image build.
+          configuration: "default"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # step - 3: Publish Release
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        body: |
+          🚀 **New Release Published**
+          - Version: `${{ env.IMAGE_TAG }}`
+          - Docker Image: `${{ secrets.DOCKERHUB_USERNAME }}/lms-backend:${{ env.IMAGE_TAG }}`
+
+          📝 **Changelog:**
+          ${{ steps.changelog.outputs.changelog }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
