@@ -1,0 +1,4 @@
+name: Release Workflow
+on:
+  Workflow_run:
+    Workflow: ["Build and Push Docker Image"]
