@@ -1,7 +1,7 @@
 name: Release Workflow
 on:
-  Workflow_run:
-    Workflow: ["Build and Push Docker Image"]
+  workflow_run:
+    workflow: ["Build and Push Docker Image"]
     types:
       - completed
 
@@ -25,13 +25,14 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate Changelog
+        # uses: mikeal/merge-release-action@v1
         with:
           configuration: "default"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # step - 3: Publish Release
       - name: Create Release
-        uses: ncipollo/release-action@v1
+        uses: actions/create-release@v1
         body: |
           🚀 **New Release Published**
           - Version: `${{ env.IMAGE_TAG }}`
