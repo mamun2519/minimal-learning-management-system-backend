@@ -4,40 +4,72 @@ on:
     workflows: ["Build and Push Docker Image"]
     types:
       - completed
+# jobs:
+#   release:
+#     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#     runs-on: ubuntu-latest
+#     steps:
+#       # Step 1: Checkout the code
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0 # Important for changelog generation
 
+#       # Step 2: Generate Changelog
+#       - name: Generate Changelog
+#         id: changelog
+#         uses: mikeal/merge-release-action@v1
+#         with:
+#           configuration: "default"
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+#       # Step 3: Get version/tag
+#       - name: Get Version
+#         id: version
+#         run: |
+#           echo "IMAGE_TAG=v${{ github.event.workflow_run.run_number }}" >> $GITHUB_ENV
+#           echo "tag=v${{ github.event.workflow_run.run_number }}" >> $GITHUB_OUTPUT
+
+#       # Step 4: Create Release
+#       - name: Create Release
+#         uses: actions/create-release@v1
+#         with:
+#           tag_name: ${{ steps.version.outputs.tag }}
+#           release_name: Release ${{ steps.version.outputs.tag }}
+#           body: |
+#             🚀 **New Release Published**
+#             - Version: `${{ env.IMAGE_TAG }}`
+#             - Docker Image: `${{ secrets.DOCKERHUB_USERNAME }}/lms-backend:${{ env.IMAGE_TAG }}`
+
+#             📝 **Changelog:**
+#             ${{ steps.changelog.outputs.changelog }}
+#           draft: false
+#           prerelease: false
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   release:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the code
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # Important for changelog generation
-
-      # Step 2: Generate Changelog
+      #Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      # Step 1: Generate changelog from conventional commits4
       - name: Generate Changelog
-        id: changelog
-        uses: mikeal/merge-release-action@v1
         with:
           configuration: "default"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Step 3: Get version/tag
-      - name: Get Version
-        id: version
-        run: |
-          echo "IMAGE_TAG=v${{ github.event.workflow_run.run_number }}" >> $GITHUB_ENV
-          echo "tag=v${{ github.event.workflow_run.run_number }}" >> $GITHUB_OUTPUT
-
-      # Step 4: Create Release
+      # Step 2: Create Release
       - name: Create Release
-        uses: actions/create-release@v1
+ 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          release_name: Release ${{ steps.version.outputs.tag }}
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
           body: |
             🚀 **New Release Published**
             - Version: `${{ env.IMAGE_TAG }}`
@@ -45,7 +77,4 @@ jobs:
 
             📝 **Changelog:**
             ${{ steps.changelog.outputs.changelog }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       uses: actions/create-release@v1
