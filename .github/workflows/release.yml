@@ -25,7 +25,7 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate Changelog
-        # uses: mikeal/merge-release-action@v1
+        uses: mikeal/merge-release-action@v1
         with:
           configuration: "default"
         env:
