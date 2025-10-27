@@ -66,7 +66,7 @@ jobs:
               -e CLOUDINARY_API_KEY="${{ secrets.CLOUDINARY_API_KEY }}" \
               -e CLOUDINARY_API_SECRET="${{ secrets.CLOUDINARY_API_SECRET }}" \
               -e BCRYPT_SALT_ROUNDS="${{ secrets.BCRYPT_SALT_ROUNDS }}" \
-               e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_EXPIRES_IN="${{ secrets.JWT_EXPIRES_IN }}" \
               -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
               -p 4000:5000 \
