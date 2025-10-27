@@ -26,6 +26,8 @@ RUN npm ci --omit=dev
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+
 
 # Create uploads directory
 RUN mkdir -p uploads
