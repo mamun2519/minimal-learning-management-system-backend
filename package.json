@@ -43,6 +43,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "ts-node-dev": "^2.0.0",
     "uuid": "^11.1.0",
-    "zod": "^4.0.17"
+    "zod": "^4.0.17",
+    "express": "^5.1.0"
   }
 }
