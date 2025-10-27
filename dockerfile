@@ -36,5 +36,5 @@ EXPOSE 5000
 # Set environment variables
 ENV NODE_ENV=production
 
-# Start application
+# Start application--
 CMD ["node", "dist/server.js"]
