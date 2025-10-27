@@ -34,6 +34,7 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/lms-backend:${{ env.IMAGE_TAG }}
       - name: Logout from Docker Hub
         run: docker logout
+    # Deploy to VPS
   deploy_VPS:
     needs: build_and_docker_push
     runs-on: ubuntu-latest
