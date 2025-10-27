@@ -1,7 +1,7 @@
 {
   "name": "minimal-learning-management-system-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/server.js",
@@ -9,6 +9,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "lint": "eslint . --ext .ts",
+    "start:prod": "NODE_ENV=production node dist/server.js",
     "lint:fix": "eslint . --ext .ts --fix",
     "prestart": "npm run build"
   },
