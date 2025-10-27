@@ -49,4 +49,4 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/lms-backend:${{ env.IMAGE_TAG }}
             docker stop lms-backend || true
             docker rm lms-backend || true
-            docker run -d --name lms-backend -p 4000:5000 ${{ secrets.DOCKERHUB_USERNAME }}/lms-backend:latest
+            docker run -d --name lms-backend -p 4000:5000 ${{ secrets.DOCKERHUB_USERNAME }}/lms-backend:${{ env.IMAGE_TAG }}
