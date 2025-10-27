@@ -10,8 +10,8 @@
     "build": "tsc",
     "lint": "eslint . --ext .ts",
     "start:prod": "NODE_ENV=production node dist/server.js",
-    "lint:fix": "eslint . --ext .ts --fix",
-    "prestart": "npm run build"
+    "lint:fix": "eslint . --ext .ts --fix"
+
   },
   "keywords": [],
   "author": "",
