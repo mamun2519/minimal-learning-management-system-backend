@@ -99,7 +99,7 @@ jobs:
   #         retention-days: 1
   # Job 3: Deploy to VPS
   docker-build-push:
-    # needs: build-and-test (যদি থাকে, তাহলে রাখুন)
+     needs: build-and-test (যদি থাকে, তাহলে রাখুন)
     runs-on: ubuntu-latest
 
     # ⚡️ পরিবর্তন ১: ট্যাগ পুশ হলেই কেবল এই জবটি চলবে
