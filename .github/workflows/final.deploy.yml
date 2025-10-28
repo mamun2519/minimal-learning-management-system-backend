@@ -167,7 +167,8 @@ jobs:
   deploy:
     needs: docker-build-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # if: github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/v')
 
     # নতুন যোগ করা: DEPLOY_PATH এবং CONTAINER_NAME সংজ্ঞায়িত করা
     env:
