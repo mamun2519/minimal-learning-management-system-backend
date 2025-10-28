@@ -81,7 +81,7 @@ jobs:
           cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
 
   # Job 3: Deploy to VPS
-deploy:
+  deploy:
   needs: docker-build-push
   runs-on: ubuntu-latest
   if: github.ref == 'refs/heads/main'
