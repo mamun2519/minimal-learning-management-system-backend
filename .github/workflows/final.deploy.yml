@@ -113,18 +113,18 @@
 #             if [ ! -f .env ]; then
 #               echo -e "${YELLOW}Creating .env file...${NC}"
 #              cat > .env << 'EOF'
-#              NODE_ENV=production 
-#              PORT=5000 
-#              DB_USER_NAME=${{ secrets.DB_USER_NAME }} 
+#              NODE_ENV=production
+#              PORT=5000
+#              DB_USER_NAME=${{ secrets.DB_USER_NAME }}
 #              DB_USER_PASSWORD=${{ secrets.DB_USER_PASSWORD }}
 #              DB_URL=${{ secrets.DB_URL }}
-#              CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} 
-#              CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} 
-#              CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} 
-#              BCRYPT_SALT_ROUNDS=${{ secrets.BCRYPT_SALT_ROUNDS }} 
+#              CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+#              CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+#              CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+#              BCRYPT_SALT_ROUNDS=${{ secrets.BCRYPT_SALT_ROUNDS }}
 #              JWT_SECRET=${{ secrets.JWT_SECRET }}
-#              JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }} 
-#              JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }} 
+#              JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
+#              JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
 #             EOF
 #             chmod 600 .env
 #             fi
@@ -231,7 +231,6 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-
   docker-build-push:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -267,7 +266,6 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.tags }}
 
-
   deploy:
     needs: docker-build-push
     runs-on: ubuntu-latest
@@ -290,19 +288,19 @@ jobs:
 
             echo "🔹 Updating .env file..."
             cat > .env << EOF
-NODE_ENV=production
-PORT=5000
-DB_USER_NAME=${{ secrets.DB_USER_NAME }}
-DB_USER_PASSWORD=${{ secrets.DB_USER_PASSWORD }}
-DB_URL=${{ secrets.DB_URL }}
-CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
-CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
-CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
-BCRYPT_SALT_ROUNDS=${{ secrets.BCRYPT_SALT_ROUNDS }}
-JWT_SECRET=${{ secrets.JWT_SECRET }}
-JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
-JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
-EOF
+            NODE_ENV=production
+            PORT=5000
+            DB_USER_NAME=${{ secrets.DB_USER_NAME }}
+            DB_USER_PASSWORD=${{ secrets.DB_USER_PASSWORD }}
+            DB_URL=${{ secrets.DB_URL }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            BCRYPT_SALT_ROUNDS=${{ secrets.BCRYPT_SALT_ROUNDS }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
+            JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+            EOF
             chmod 600 .env
 
             echo "🔹 Pulling latest Docker image..."
