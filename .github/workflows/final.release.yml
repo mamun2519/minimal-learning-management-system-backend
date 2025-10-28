@@ -1,13 +1,108 @@
+# name: Create Release
+
+# on:
+#   workflow_run:
+#     workflows: ["Build, Test & Deploy"]
+#     types:
+#       - completed
+
+# permissions:
+#   contents: write
+
+# jobs:
+#   release:
+#     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       # ⭐ ধাপ ১: Artifact ডাউনলোড করুন (ফাইল নয়, ZIP ডেটা)
+#       - name: Download Artifact Zip Data
+#         uses: actions/github-script@v6
+#         id: download
+#         with:
+#           script: |
+#             const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+#               owner: context.repo.owner,
+#               repo: context.repo.repo,
+#               run_id: ${{ github.event.workflow_run.id }},
+#             });
+
+#             const matchArtifact = artifacts.artifacts.find(artifact => artifact.name === 'release-image-tags');
+#             if (!matchArtifact) {
+#               core.setFailed('Could not find artifact release-image-tags');
+#               return;
+#             }
+
+#             // Artifact টি ডাউনলোড করে একটি ফাইলে সেভ করা হচ্ছে
+#             const download = await github.rest.actions.downloadArtifact({
+#               owner: context.repo.owner,
+#               repo: context.repo.repo,
+#               artifact_id: matchArtifact.id,
+#               archive_format: 'zip',
+#             });
+
+#             const fs = require('fs');
+#             // ডাউনলোড করা বাইনারি ডেটা একটি zip ফাইলে সেভ করুন
+#             fs.writeFileSync('release-image-tags.zip', Buffer.from(download.data));
+
+#       # ⭐ ধাপ ২: ZIP ফাইলটি আনজিপ করুন এবং ডেটা বের করে আনুন
+#       - name: Unzip and Load Image Tags Data
+#         id: load_tags
+#         run: |
+#           # zip ফাইলটিকে একটি ফোল্ডারে এক্সট্র্যাক্ট করা হচ্ছে
+#           unzip release-image-tags.zip -d release-data
+
+#           # ফাইল থেকে ডেটা পড়া হচ্ছে
+#           TAGS_DATA=$(cat release-data/image_tags.txt)
+
+#           echo "Tags Data: $TAGS_DATA" # ডিবাগিং
+
+#           # ডেটা পার্স করা (Versions এবং Tags বের করা)
+#           ALL_TAGS=$(echo "$TAGS_DATA" | grep "Tags:" | sed 's/Tags: //')
+#           VERSION_TAG=$(echo "$TAGS_DATA" | grep "Version:" | sed 's/Version: //')
+
+#           # এনভায়রনমেন্ট ভ্যারিয়েবল হিসাবে সেট করা
+#           echo "ALL_TAGS=$ALL_TAGS" >> $GITHUB_ENV
+#           echo "RELEASE_VERSION=$VERSION_TAG" >> $GITHUB_ENV
+
+#       - name: Create Release
+#         uses: softprops/action-gh-release@v1
+#         with:
+#           # সঠিক ভার্সন ট্যাগ ব্যবহার করা
+#           tag_name: v${{ env.RELEASE_VERSION }}
+#           name: Release v${{ env.RELEASE_VERSION }}
+
+#           # রিলিজ বডিতে ৩টি ইমেজের ডিটেইলস দেখানো
+#           body: |
+#             🚀 **New Release Published**
+
+#             ### Docker Images
+#             The following tags were pushed:
+#             - **All Tags:** `${{ env.ALL_TAGS }}`
+#             - **Primary Tag:** `${{ env.IMAGE_NAME }}:v${{ env.RELEASE_VERSION }}`
+#             - **Latest Tag:** `${{ env.IMAGE_NAME }}:latest` (Assuming this is included in ALL_TAGS)
+
+#             ---
+
+#             - **Version:** `v${{ env.RELEASE_VERSION }}`
+#             - **Deployed:** ${{ github.event.workflow_run.updated_at }}
+
+#             View workflow run: ${{ github.event.workflow_run.html_url }}
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 name: Create Release
 
 on:
   workflow_run:
+    # নিশ্চিত করুন যে নামটি আপনার Build and Deploy YML ফাইলের নামের সাথে মেলে
     workflows: ["Build, Test & Deploy"]
     types:
       - completed
 
 permissions:
-  contents: write
+  contents: write # রিলিজ তৈরির জন্য আবশ্যক
 
 jobs:
   release:
@@ -17,7 +112,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ⭐ ধাপ ১: Artifact ডাউনলোড করুন (ফাইল নয়, ZIP ডেটা)
+      # ধাপ ১: Artifact ডাউনলোড করুন (আগের YML-এর মতো, কিন্তু ফাইল পরিবর্তন করা হয়েছে)
+      # ... (unzip fix ব্যবহার করুন) ...
       - name: Download Artifact Zip Data
         uses: actions/github-script@v6
         id: download
@@ -35,7 +131,6 @@ jobs:
               return;
             }
 
-            // Artifact টি ডাউনলোড করে একটি ফাইলে সেভ করা হচ্ছে
             const download = await github.rest.actions.downloadArtifact({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -44,51 +139,45 @@ jobs:
             });
 
             const fs = require('fs');
-            // ডাউনলোড করা বাইনারি ডেটা একটি zip ফাইলে সেভ করুন
-            fs.writeFileSync('release-image-tags.zip', Buffer.from(download.data));
+            fs.writeFileSync('release-data.zip', Buffer.from(download.data));
 
-      # ⭐ ধাপ ২: ZIP ফাইলটি আনজিপ করুন এবং ডেটা বের করে আনুন
-      - name: Unzip and Load Image Tags Data
-        id: load_tags
+      # ধাপ ২: ZIP ফাইলটি আনজিপ করুন এবং ডেটা বের করে আনুন
+      - name: Unzip and Load Tag Data
+        id: load_data
         run: |
-          # zip ফাইলটিকে একটি ফোল্ডারে এক্সট্র্যাক্ট করা হচ্ছে
-          unzip release-image-tags.zip -d release-data
+          # unzip এবং ডেটা লোড করার জন্য প্রয়োজনীয় কমান্ড
+          unzip release-data.zip -d release-data
 
-          # ফাইল থেকে ডেটা পড়া হচ্ছে
-          TAGS_DATA=$(cat release-data/image_tags.txt)
-
-          echo "Tags Data: $TAGS_DATA" # ডিবাগিং
-
-          # ডেটা পার্স করা (Versions এবং Tags বের করা)
-          ALL_TAGS=$(echo "$TAGS_DATA" | grep "Tags:" | sed 's/Tags: //')
-          VERSION_TAG=$(echo "$TAGS_DATA" | grep "Version:" | sed 's/Version: //')
+          # ফাইল থেকে ভ্যারিয়েবলগুলি লোড করা
+          # এটি একটি সহজ উপায়, যেখানে ফাইলটি সরাসরি ENV হিসাবে সোর্স করা হয়
+          . release-data/release_data.txt
 
           # এনভায়রনমেন্ট ভ্যারিয়েবল হিসাবে সেট করা
-          echo "ALL_TAGS=$ALL_TAGS" >> $GITHUB_ENV
           echo "RELEASE_VERSION=$VERSION_TAG" >> $GITHUB_ENV
+          echo "IMAGE_NAME=$FULL_IMAGE_NAME" >> $GITHUB_ENV
+          echo "DOCKER_TAGS=$DOCKER_TAGS" >> $GITHUB_ENV
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          # সঠিক ভার্সন ট্যাগ ব্যবহার করা
-          tag_name: v${{ env.RELEASE_VERSION }}
-          name: Release v${{ env.RELEASE_VERSION }}
+          # vX.Y.Z ফরম্যাটে সঠিক ট্যাগটি ব্যবহার করা
+          tag_name: ${{ env.RELEASE_VERSION }}
+          name: Release ${{ env.RELEASE_VERSION }}
 
-          # রিলিজ বডিতে ৩টি ইমেজের ডিটেইলস দেখানো
           body: |
             🚀 **New Release Published**
 
-            ### Docker Images
-            The following tags were pushed:
-            - **All Tags:** `${{ env.ALL_TAGS }}`
-            - **Primary Tag:** `${{ env.IMAGE_NAME }}:v${{ env.RELEASE_VERSION }}`
-            - **Latest Tag:** `${{ env.IMAGE_NAME }}:latest` (Assuming this is included in ALL_TAGS)
+            This release corresponds to the tag **${{ env.RELEASE_VERSION }}**
+
+            ### Docker Images Pushed
+            The application was built and pushed with the following tags:
+            - **Version Tag:** `${{ env.IMAGE_NAME }}:${{ env.RELEASE_VERSION }}`
+            - **Latest Tag:** `${{ env.IMAGE_NAME }}:latest`
+            - **All Tags:** `${{ env.DOCKER_TAGS }}`
 
             ---
 
-            - **Version:** `v${{ env.RELEASE_VERSION }}`
-            - **Deployed:** ${{ github.event.workflow_run.updated_at }}
-
-            View workflow run: ${{ github.event.workflow_run.html_url }}
+            View build workflow run: ${{ github.event.workflow_run.html_url }}
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
