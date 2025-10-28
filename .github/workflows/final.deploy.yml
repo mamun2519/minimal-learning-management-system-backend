@@ -112,22 +112,21 @@ jobs:
             # Create env file if not exists
             if [ ! -f .env ]; then
               echo -e "${YELLOW}Creating .env file...${NC}"
-              cat > .env << 'EOF'
-
+             cat > .env << 'EOF'
              NODE_ENV=production 
              PORT=5000 
-             DB_USER_NAME="${{ secrets.DB_USER_NAME }}" 
-             DB_USER_PASSWORD="${{ secrets.DB_USER_PASSWORD }}" 
-             DB_URL="${{ secrets.DB_URL }}" 
-             CLOUDINARY_CLOUD_NAME="${{ secrets.CLOUDINARY_CLOUD_NAME }}" 
-             CLOUDINARY_API_KEY="${{ secrets.CLOUDINARY_API_KEY }}" 
-             CLOUDINARY_API_SECRET="${{ secrets.CLOUDINARY_API_SECRET }}" 
-             BCRYPT_SALT_ROUNDS="${{ secrets.BCRYPT_SALT_ROUNDS }}" 
-             JWT_SECRET="${{ secrets.JWT_SECRET }}" 
-             JWT_EXPIRES_IN="${{ secrets.JWT_EXPIRES_IN }}" 
-             JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" 
+             DB_USER_NAME=${{ secrets.DB_USER_NAME }} 
+             DB_USER_PASSWORD=${{ secrets.DB_USER_PASSWORD }}
+             DB_URL=${{ secrets.DB_URL }}
+             CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} 
+             CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} 
+             CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} 
+             BCRYPT_SALT_ROUNDS=${{ secrets.BCRYPT_SALT_ROUNDS }} 
+             JWT_SECRET=${{ secrets.JWT_SECRET }}
+             JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }} 
+             JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }} 
             EOF
-              chmod 600 .env
+            chmod 600 .env
             fi
 
             # Pull latest image
