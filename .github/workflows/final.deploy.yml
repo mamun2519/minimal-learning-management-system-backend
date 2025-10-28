@@ -79,7 +79,21 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+      # ⭐ নতুন যোগ করা: ইমেজ ট্যাগগুলি সেভ করুন
+      - name: Save Image Tags for Release
+        id: save_tags
+        run: |
+          echo "Tags: ${{ steps.meta.outputs.tags }}" > image_tags.txt
+          echo "Version: ${{ steps.meta.outputs.version }}" >> image_tags.txt
+          echo "Image Name: ${{ env.IMAGE_NAME }}" >> image_tags.txt
 
+      # ⭐ নতুন যোগ করা: Artifact হিসাবে আপলোড করুন
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-image-tags
+          path: image_tags.txt
+          retention-days: 1
   # Job 3: Deploy to VPS
   deploy:
     needs: docker-build-push

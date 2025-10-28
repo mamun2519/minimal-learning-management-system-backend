@@ -1,24 +1,97 @@
 name: Create Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_run:
+    workflows: ["Build and Push Docker Image"]
+    types:
+      - completed
+
 permissions:
-  contents: write # This is required for creating releases
-  packages: write #
+  contents: write
+
 jobs:
   release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
+
+      # ⭐ নতুন যোগ করা: Artifact ডাউনলোড করার জন্য
+      - name: Download Artifact
+        uses: actions/github-script@v6
+        id: download
+        with:
+          script: |
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }},
+            });
+
+            const matchArtifact = artifacts.artifacts.find(artifact => artifact.name === 'release-image-tags');
+            if (!matchArtifact) {
+              core.setFailed('Could not find artifact release-image-tags');
+              return;
+            }
+
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
+            });
+
+            const fs = require('fs');
+            const path = require('path');
+            constAdmZip = require('adm-zip');
+
+            const zip = new AdmZip(Buffer.from(download.data));
+            zip.extractAllTo('release-data', true);
+
+            const tagsData = fs.readFileSync(path.join('release-data', 'image_tags.txt'), 'utf8');
+            core.setOutput('image_tags_data', tagsData);
+
+      # ⭐ নতুন যোগ করা: ইমেজ ট্যাগ ভ্যারিয়েবল হিসাবে লোড করুন
+      - name: Load Image Tags Data
+        id: load_tags
+        run: |
+          # Artifact থেকে ডেটা পার্স করা
+          TAGS_DATA="${{ steps.download.outputs.image_tags_data }}"
+
+          # প্রথম লাইন থেকে Tags বের করা
+          ALL_TAGS=$(echo "$TAGS_DATA" | grep "Tags:" | sed 's/Tags: //')
+
+          # ভার্সন বের করা
+          VERSION_TAG=$(echo "$TAGS_DATA" | grep "Version:" | sed 's/Version: //')
+
+          # এনভায়রনমেন্ট ভ্যারিয়েবল হিসাবে সেট করা
+          echo "ALL_TAGS=$ALL_TAGS" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=$VERSION_TAG" >> $GITHUB_ENV
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          # এখানে v${{ env.RELEASE_VERSION }} ব্যবহার করুন
+          tag_name: v${{ env.RELEASE_VERSION }}
+          name: Release v${{ env.RELEASE_VERSION }}
+
+          # 🚀 রিলিজ বডিতে ৩টি ইমেজের ডিটেইলস দেখানো
+          body: |
+            🚀 **New Release Published**
+
+            ### Docker Images
+            The following tags were pushed:
+            - **All Tags:** `${{ env.ALL_TAGS }}`
+            - **Primary Tag:** `v${{ env.RELEASE_VERSION }}`
+            - **Image Name:** `${{ env.IMAGE_NAME }}` (from workflow_run's env)
+
+            ---
+
+            - **Version:** `v${{ env.RELEASE_VERSION }}`
+            - **Deployed:** ${{ github.event.workflow_run.updated_at }}
+
+            View workflow run: ${{ github.event.workflow_run.html_url }}
           generate_release_notes: true
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
