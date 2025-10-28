@@ -150,15 +150,25 @@ jobs:
           # unzip এবং ডেটা লোড করার জন্য প্রয়োজনীয় কমান্ড
           unzip release-data.zip -d release-data
 
-          # ফাইল থেকে ভ্যারিয়েবলগুলি লোড করা
-          # এটি একটি সহজ উপায়, যেখানে ফাইলটি সরাসরি ENV হিসাবে সোর্স করা হয়
-          . release-data/release_data.txt
+          echo "### Loaded release_data.txt contents ###" # ডিবাগিং এর জন্য
+          cat release-data/release_data.txt # ডিবাগিং এর জন্য কন্টেন্ট প্রিন্ট করা
+          echo "########################################"
 
-          # এনভায়রনমেন্ট ভ্যারিয়েবল হিসাবে সেট করা
+          # ফাইল থেকে ডেটা পার্স করে GITHUB_ENV তে সেট করা
+
+          # VERSION_TAG লোড করা
+          VERSION_TAG=$(grep "^VERSION_TAG=" release-data/release_data.txt | cut -d'=' -f2)
           echo "RELEASE_VERSION=$VERSION_TAG" >> $GITHUB_ENV
+
+          # FULL_IMAGE_NAME লোড করা
+          FULL_IMAGE_NAME=$(grep "^FULL_IMAGE_NAME=" release-data/release_data.txt | cut -d'=' -f2)
           echo "IMAGE_NAME=$FULL_IMAGE_NAME" >> $GITHUB_ENV
+
+          # DOCKER_TAGS লোড করা
+          DOCKER_TAGS=$(grep "^DOCKER_TAGS=" release-data/release_data.txt | cut -d'=' -f2)
           echo "DOCKER_TAGS=$DOCKER_TAGS" >> $GITHUB_ENV
 
+          echo "✅ Environment variables set successfully."
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
