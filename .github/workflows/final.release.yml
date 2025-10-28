@@ -17,8 +17,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ⭐ নতুন যোগ করা: Artifact ডাউনলোড করার জন্য
-      - name: Download Artifact
+      # ⭐ ধাপ ১: Artifact ডাউনলোড করুন (ফাইল নয়, ZIP ডেটা)
+      - name: Download Artifact Zip Data
         uses: actions/github-script@v6
         id: download
         with:
@@ -35,6 +35,7 @@ jobs:
               return;
             }
 
+            // Artifact টি ডাউনলোড করে একটি ফাইলে সেভ করা হচ্ছে
             const download = await github.rest.actions.downloadArtifact({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -43,26 +44,23 @@ jobs:
             });
 
             const fs = require('fs');
-            const path = require('path');
-            constAdmZip = require('adm-zip');
+            // ডাউনলোড করা বাইনারি ডেটা একটি zip ফাইলে সেভ করুন
+            fs.writeFileSync('release-image-tags.zip', Buffer.from(download.data));
 
-            const zip = new AdmZip(Buffer.from(download.data));
-            zip.extractAllTo('release-data', true);
-
-            const tagsData = fs.readFileSync(path.join('release-data', 'image_tags.txt'), 'utf8');
-            core.setOutput('image_tags_data', tagsData);
-
-      # ⭐ নতুন যোগ করা: ইমেজ ট্যাগ ভ্যারিয়েবল হিসাবে লোড করুন
-      - name: Load Image Tags Data
+      # ⭐ ধাপ ২: ZIP ফাইলটি আনজিপ করুন এবং ডেটা বের করে আনুন
+      - name: Unzip and Load Image Tags Data
         id: load_tags
         run: |
-          # Artifact থেকে ডেটা পার্স করা
-          TAGS_DATA="${{ steps.download.outputs.image_tags_data }}"
+          # zip ফাইলটিকে একটি ফোল্ডারে এক্সট্র্যাক্ট করা হচ্ছে
+          unzip release-image-tags.zip -d release-data
 
-          # প্রথম লাইন থেকে Tags বের করা
+          # ফাইল থেকে ডেটা পড়া হচ্ছে
+          TAGS_DATA=$(cat release-data/image_tags.txt)
+
+          echo "Tags Data: $TAGS_DATA" # ডিবাগিং
+
+          # ডেটা পার্স করা (Versions এবং Tags বের করা)
           ALL_TAGS=$(echo "$TAGS_DATA" | grep "Tags:" | sed 's/Tags: //')
-
-          # ভার্সন বের করা
           VERSION_TAG=$(echo "$TAGS_DATA" | grep "Version:" | sed 's/Version: //')
 
           # এনভায়রনমেন্ট ভ্যারিয়েবল হিসাবে সেট করা
@@ -72,19 +70,19 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          # এখানে v${{ env.RELEASE_VERSION }} ব্যবহার করুন
+          # সঠিক ভার্সন ট্যাগ ব্যবহার করা
           tag_name: v${{ env.RELEASE_VERSION }}
           name: Release v${{ env.RELEASE_VERSION }}
 
-          # 🚀 রিলিজ বডিতে ৩টি ইমেজের ডিটেইলস দেখানো
+          # রিলিজ বডিতে ৩টি ইমেজের ডিটেইলস দেখানো
           body: |
             🚀 **New Release Published**
 
             ### Docker Images
             The following tags were pushed:
             - **All Tags:** `${{ env.ALL_TAGS }}`
-            - **Primary Tag:** `v${{ env.RELEASE_VERSION }}`
-            - **Image Name:** `${{ env.IMAGE_NAME }}` (from workflow_run's env)
+            - **Primary Tag:** `${{ env.IMAGE_NAME }}:v${{ env.RELEASE_VERSION }}`
+            - **Latest Tag:** `${{ env.IMAGE_NAME }}:latest` (Assuming this is included in ALL_TAGS)
 
             ---
 
@@ -92,6 +90,5 @@ jobs:
             - **Deployed:** ${{ github.event.workflow_run.updated_at }}
 
             View workflow run: ${{ github.event.workflow_run.html_url }}
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
