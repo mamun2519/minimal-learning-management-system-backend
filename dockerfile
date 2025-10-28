@@ -30,7 +30,16 @@ COPY --from=builder /app/node_modules ./node_modules
 
 
 # Create uploads directory
-RUN mkdir -p uploads
+RUN mkdir -p uploads logs
+
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \\
+      adduser -S nodejs -u 1001 && \\
+      chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
 
 # Expose port
 EXPOSE 5000
