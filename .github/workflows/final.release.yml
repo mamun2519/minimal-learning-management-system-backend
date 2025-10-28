@@ -125,9 +125,11 @@ jobs:
               run_id: ${{ github.event.workflow_run.id }},
             });
 
-            const matchArtifact = artifacts.artifacts.find(artifact => artifact.name === 'release-image-tags');
+            // ⚡️ FIX: Artifact-এর নাম পরিবর্তন করুন
+            const matchArtifact = artifacts.artifacts.find(artifact => artifact.name === 'release-data-artifact'); 
+
             if (!matchArtifact) {
-              core.setFailed('Could not find artifact release-image-tags');
+              core.setFailed('Could not find artifact release-data-artifact'); // erorr message change
               return;
             }
 
