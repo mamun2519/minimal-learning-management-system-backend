@@ -10,7 +10,11 @@
     "build": "tsc",
     "lint": "eslint . --ext .ts",
     "start:prod": "NODE_ENV=production node dist/server.js",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+     "version:major": "npm version major",
+    "version:minor": "npm version minor",
+    "version:patch": "npm version patch",
+    "release": "npm run version:patch && git push --follow-tags"
 
   },
   "keywords": [],
