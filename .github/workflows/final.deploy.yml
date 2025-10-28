@@ -85,6 +85,12 @@ jobs:
     needs: docker-build-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+
+    # নতুন যোগ করা: DEPLOY_PATH এবং CONTAINER_NAME সংজ্ঞায়িত করা
+    env:
+      CONTAINER_NAME: minimal-lms-backend
+      DEPLOY_PATH: /home/${{ secrets.VPS_USERNAME }}/app/lms-backend # আপনার VPS এ deployment path
+
     steps:
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -92,9 +98,14 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
+
+          # BUG FIX: এই লাইনটি যোগ করা হয়েছে!
+          # এটি নিশ্চিত করবে যে $IMAGE_NAME, $CONTAINER_NAME এবং $DEPLOY_PATH এর মান SSH স্ক্রিপ্টে পাওয়া যায়।
+          envs: IMAGE_NAME,CONTAINER_NAME,DEPLOY_PATH
+
           script: |
             set -e
-            echo "🎯 Deployment started..."
+            echo "🎯 Deployment started with Image: $IMAGE_NAME" # ডিবাগিং এর জন্য IMAGE_NAME প্রিন্ট করুন
 
             mkdir -p $DEPLOY_PATH/logs $DEPLOY_PATH/uploads
             cd $DEPLOY_PATH
@@ -120,6 +131,7 @@ jobs:
             fi
 
             echo "📦 Pulling latest image..."
+            # $IMAGE_NAME এর মান এখন সঠিকভাবে আসবে
             docker pull $IMAGE_NAME:main
 
             echo "🛑 Stopping old container..."
