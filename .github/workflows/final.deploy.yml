@@ -233,7 +233,7 @@ jobs:
               --log-driver json-file \
               --log-opt max-size=10m \
               --log-opt max-file=3 \
-              --health-cmd="curl -f http://localhost:5000/health || exit 1" \
+              --health-cmd="curl -f http://localhost:4001/health || exit 1" \
               --health-interval=15s \
               --health-retries=3 \
               --health-timeout=5s \
