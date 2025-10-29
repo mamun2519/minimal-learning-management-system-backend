@@ -38,76 +38,12 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-  # Job 2: Build & Push Docker Image
-  # docker-build-push:
-  #   needs: build-and-test
-  #   runs-on: ubuntu-latest
-  #   if: github.event_name == 'push'
-  #   outputs:
-  #     image-tag: ${{ steps.meta.outputs.tags }}
-  #     version: ${{ steps.meta.outputs.version }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
-
-  #     - name: Log in to Docker Hub
-  #       uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  #     - name: Extract metadata
-  #       id: meta
-  #       uses: docker/metadata-action@v5
-  #       with:
-  #         images: ${{ env.IMAGE_NAME }}
-  #         tags: |
-  #           type=ref,event=branch
-  #           type=ref,event=pr
-  #           type=semver,pattern={{version}}
-  #           type=semver,pattern={{major}}.{{minor}}
-  #           type=sha,prefix={{branch}}-
-  #           type=raw,value=latest,enable={{is_default_branch}}
-
-  #     - name: Build and push Docker image
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         push: true
-  #         tags: ${{ steps.meta.outputs.tags }}
-  #         labels: ${{ steps.meta.outputs.labels }}
-  #         cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
-  #         cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
-  #     # ⭐ নতুন যোগ করা: ইমেজ ট্যাগগুলি সেভ করুন
-  #     - name: Save Image Tags for Release
-  #       id: save_tags
-  #       run: |
-  #         echo "Tags: ${{ steps.meta.outputs.tags }}" > image_tags.txt
-  #         echo "Version: ${{ steps.meta.outputs.version }}" >> image_tags.txt
-  #         echo "Image Name: ${{ env.IMAGE_NAME }}" >> image_tags.txt
-
-  #     # ⭐ নতুন যোগ করা: Artifact হিসাবে আপলোড করুন
-  #     - name: Upload Artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: release-image-tags
-  #         path: image_tags.txt
-  #         retention-days: 1
-  # Job 3: Deploy to VPS
+  # Job 2: Docker Build and Push
   docker-build-push:
-    needs: build-and-test #(যদি থাকে, তাহলে রাখুন)
+    needs: build-and-test
     runs-on: ubuntu-latest
-
-    # ⚡️ পরিবর্তন ১: ট্যাগ পুশ হলেই কেবল এই জবটি চলবে
+    #step 1: only run this job when a tag starting with 'v' is pushed
     if: startsWith(github.ref, 'refs/tags/v')
-
-    # outputs:
-    # আউটপুট প্রয়োজন নেই, কারণ ট্যাগ এখন স্থির (stable)
-    # image-tag: ${{ steps.meta.outputs.tags }}
-    # version: ${{ steps.meta.outputs.version }}
 
     steps:
       - name: Checkout code
@@ -121,59 +57,61 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+      # step 2: Build and Push Docker Image with proper tags
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            # ⚡️ পরিবর্তন ২: শুধুমাত্র পুশ করা ট্যাগ (vX.Y.Z) এবং latest ট্যাগ ব্যবহার করুন
+            #step 3: select tags: latest এবং vX.Y.Z
             type=raw,value=${{ github.ref_name }} # e.g., v1.0.0
             type=raw,value=latest # latest ট্যাগ
-
+      # step 3: Build and Push Docker Image
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          # ⚡️ পরিবর্তন ৩: tags: ${{ steps.meta.outputs.tags }} ব্যবহার করুন
+          # step 4: Use the generated metadata for tagging
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
 
-      # ⭐ পরিবর্তন ৪: রিলিজের জন্য ডেটা সংরক্ষণ করুন (পেশাদারী ফর্মে)
+        #step 5: Save Tag Data for Release
       - name: Save Tag Data for Release
         id: save_tag
         run: |
-          # vX.Y.Z ট্যাগ বের করুন
+          # tag collected from the git ref
           VERSION_TAG=${{ github.ref_name }}
-          # Docker Hub রেপোজিটরি নাম
+          # Docker Hub image name
           FULL_IMAGE_NAME=${{ env.IMAGE_NAME }}
 
-          # ডেটা ফাইলে সেভ করা
-          echo "VERSION_TAG=$VERSION_TAG" > release_data.txt
+          # data save the file
+           echo "VERSION_TAG=$VERSION_TAG" > release_data.txt
           echo "FULL_IMAGE_NAME=$FULL_IMAGE_NAME" >> release_data.txt
           echo "DOCKER_TAGS=${{ steps.meta.outputs.tags }}" >> release_data.txt
 
-      # ⭐ পরিবর্তন ৫: Artifact হিসাবে আপলোড করুন (ফাইল এবং নাম পরিবর্তন)
+      # step 6: Upload Artifact for Release Job
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-data-artifact
           path: release_data.txt
           retention-days: 1
+  # Job 3: Deploy to VPS
   deploy:
     needs: docker-build-push
     runs-on: ubuntu-latest
+    # step 1: only run this job when a tag starting with 'v' is pushed
     # if: github.ref == 'refs/heads/main'
     if: startsWith(github.ref, 'refs/tags/v')
 
-    # নতুন যোগ করা: DEPLOY_PATH এবং CONTAINER_NAME সংজ্ঞায়িত করা
+    # file path and environment variable for deployment
     env:
       CONTAINER_NAME: minimal-lms-backend
-      DEPLOY_PATH: /home/${{ secrets.VPS_USERNAME }}/app/lms-backend # আপনার VPS এ deployment path
+      DEPLOY_PATH: /home/${{ secrets.VPS_USERNAME }}/app/lms-backend # your VPS এ deployment path
 
     steps:
       - name: Deploy to VPS via SSH
@@ -183,13 +121,11 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
 
-          # BUG FIX: এই লাইনটি যোগ করা হয়েছে!
-          # এটি নিশ্চিত করবে যে $IMAGE_NAME, $CONTAINER_NAME এবং $DEPLOY_PATH এর মান SSH স্ক্রিপ্টে পাওয়া যায়।
           envs: IMAGE_NAME,CONTAINER_NAME,DEPLOY_PATH
 
           script: |
             set -e
-            echo "🎯 Deployment started with Image: $IMAGE_NAME" # ডিবাগিং এর জন্য IMAGE_NAME প্রিন্ট করুন
+            echo "🎯 Deployment started with Image: $IMAGE_NAME" 
 
             mkdir -p $DEPLOY_PATH/logs $DEPLOY_PATH/uploads
             cd $DEPLOY_PATH
@@ -215,7 +151,6 @@ jobs:
             fi
 
             echo "📦 Pulling latest image..."
-            # $IMAGE_NAME এর মান এখন সঠিকভাবে আসবে
             docker pull $IMAGE_NAME:main
 
             echo "🛑 Stopping old container..."

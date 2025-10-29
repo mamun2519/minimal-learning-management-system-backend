@@ -2,13 +2,13 @@ name: Create Release
 
 on:
   workflow_run:
-    # নিশ্চিত করুন যে নামটি আপনার Build and Deploy YML ফাইলের নামের সাথে মেলে
+    # dependency: "Build, Test & Deploy"
     workflows: ["Build, Test & Deploy"]
     types:
       - completed
 
 permissions:
-  contents: write # রিলিজ তৈরির জন্য আবশ্যক
+  contents: write
 
 jobs:
   release:
@@ -18,8 +18,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ধাপ ১: Artifact ডাউনলোড করুন (আগের YML-এর মতো, কিন্তু ফাইল পরিবর্তন করা হয়েছে)
-      # ... (unzip fix ব্যবহার করুন) ...
+      # Step 1: download the artifact created in the previous workflow
       - name: Download Artifact Zip Data
         uses: actions/github-script@v6
         id: download
@@ -31,7 +30,7 @@ jobs:
               run_id: ${{ github.event.workflow_run.id }},
             });
 
-            // ⚡️ FIX: Artifact-এর নাম পরিবর্তন করুন
+            // ⚡️ FIX: Artifact- name change to 'release-data-artifact'
             const matchArtifact = artifacts.artifacts.find(artifact => artifact.name === 'release-data-artifact'); 
 
             if (!matchArtifact) {
@@ -49,28 +48,28 @@ jobs:
             const fs = require('fs');
             fs.writeFileSync('release-data.zip', Buffer.from(download.data));
 
-      # ধাপ ২: ZIP ফাইলটি আনজিপ করুন এবং ডেটা বের করে আনুন
+      # Step 2: Unzip the file and extract data
       - name: Unzip and Load Tag Data
         id: load_data
         run: |
-          # unzip এবং ডেটা লোড করার জন্য প্রয়োজনীয় কমান্ড
+          #  Unzip the downloaded artifact
           unzip release-data.zip -d release-data
 
-          echo "### Loaded release_data.txt contents ###" # ডিবাগিং এর জন্য
-          cat release-data/release_data.txt # ডিবাগিং এর জন্য কন্টেন্ট প্রিন্ট করা
+          echo "### Loaded release_data.txt contents ###" 
+          cat release-data/release_data.txt 
           echo "########################################"
 
-          # ফাইল থেকে ডেটা পার্স করে GITHUB_ENV তে সেট করা
+          # step 3: Export data as environment variables
 
-          # VERSION_TAG লোড করা
+          # VERSION_TAG load
           VERSION_TAG=$(grep "^VERSION_TAG=" release-data/release_data.txt | cut -d'=' -f2)
           echo "RELEASE_VERSION=$VERSION_TAG" >> $GITHUB_ENV
 
-          # FULL_IMAGE_NAME লোড করা
+          # FULL_IMAGE_NAME  load
           FULL_IMAGE_NAME=$(grep "^FULL_IMAGE_NAME=" release-data/release_data.txt | cut -d'=' -f2)
           echo "IMAGE_NAME=$FULL_IMAGE_NAME" >> $GITHUB_ENV
 
-          # DOCKER_TAGS লোড করা
+          # DOCKER_TAGS load
           DOCKER_TAGS=$(grep "^DOCKER_TAGS=" release-data/release_data.txt | cut -d'=' -f2)
           echo "DOCKER_TAGS=$DOCKER_TAGS" >> $GITHUB_ENV
 
@@ -78,7 +77,6 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          # vX.Y.Z ফরম্যাটে সঠিক ট্যাগটি ব্যবহার করা
           tag_name: ${{ env.RELEASE_VERSION }}
           name: Release ${{ env.RELEASE_VERSION }}
 
