@@ -5,9 +5,18 @@ on:
   #   branches: [main]
   # pull_request:
   #   branches: [main]
-  push:
-    tags:
-      - "v*" # v1.0.0, v1.0.1, ইত্যাদির জন্য
+  # push:
+  #   tags:
+  #     - "v*" # v1.0.0, v1.0.1, ইত্যাদির জন্য
+
+   push:
+    branches: [main]
+  workflow_dispatch:  # Manual trigger option
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., v1.2.3)'
+        required: true
+        type: string
 
 env:
   REGISTRY: docker.io
