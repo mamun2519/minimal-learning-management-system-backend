@@ -179,9 +179,8 @@ jobs:
               --health-interval=15s \
               --health-retries=3 \
               --health-timeout=5s \
-              # $IMAGE_NAME:main
-              # ⚡️ পরিবর্তন ২: এখানেও $IMAGE_NAME:main এর বদলে $VERSION_TAG ব্যবহার করুন
-              $IMAGE_NAME:$VERSION_TAG
+              # ⚡️ ফিক্স: IMAGE_NAME এবং VERSION_TAG ডাবল কোটে ব্যবহার করুন
+              "${IMAGE_NAME}:${VERSION_TAG}"
 
             echo "✅ Checking container health..."
             sleep 10
