@@ -3,7 +3,7 @@ name: Create Release
 on:
   workflow_run:
     # নিশ্চিত করুন যে নামটি আপনার Build and Deploy YML ফাইলের নামের সাথে মেলে
-    workflows: ["Build, Test & Deploy-------"]
+    workflows: ["Build, Test & Deploy"]
     types:
       - completed
 
