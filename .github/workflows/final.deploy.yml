@@ -72,7 +72,7 @@ jobs:
           tags: |
             # ⚡️ পরিবর্তন ২: শুধুমাত্র পুশ করা ট্যাগ (vX.Y.Z) এবং latest ট্যাগ ব্যবহার করুন
             type=raw,value=${{ github.ref_name }} # e.g., v1.0.0
-            type=raw,value=latest # latest ট্যাগ
+            # type=raw,value=latest # latest ট্যাগ
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -86,26 +86,26 @@ jobs:
           cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
 
       # ⭐ পরিবর্তন ৪: রিলিজের জন্য ডেটা সংরক্ষণ করুন (পেশাদারী ফর্মে)
-      - name: Save Tag Data for Release
-        id: save_tag
-        run: |
-          # vX.Y.Z ট্যাগ বের করুন
-          VERSION_TAG=${{ github.ref_name }}
-          # Docker Hub রেপোজিটরি নাম
-          FULL_IMAGE_NAME=${{ env.IMAGE_NAME }}
+      # - name: Save Tag Data for Release
+      #   id: save_tag
+      #   run: |
+      #     # vX.Y.Z ট্যাগ বের করুন
+      #     VERSION_TAG=${{ github.ref_name }}
+      #     # Docker Hub রেপোজিটরি নাম
+      #     FULL_IMAGE_NAME=${{ env.IMAGE_NAME }}
 
-          # ডেটা ফাইলে সেভ করা
-          echo "VERSION_TAG=$VERSION_TAG" > release_data.txt
-          echo "FULL_IMAGE_NAME=$FULL_IMAGE_NAME" >> release_data.txt
-          echo "DOCKER_TAGS=${{ steps.meta.outputs.tags }}" >> release_data.txt
+      #     # ডেটা ফাইলে সেভ করা
+      #     echo "VERSION_TAG=$VERSION_TAG" > release_data.txt
+      #     echo "FULL_IMAGE_NAME=$FULL_IMAGE_NAME" >> release_data.txt
+      #     echo "DOCKER_TAGS=${{ steps.meta.outputs.tags }}" >> release_data.txt
 
-      # ⭐ পরিবর্তন ৫: Artifact হিসাবে আপলোড করুন (ফাইল এবং নাম পরিবর্তন)
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-data-artifact
-          path: release_data.txt
-          retention-days: 1
+      # # ⭐ পরিবর্তন ৫: Artifact হিসাবে আপলোড করুন (ফাইল এবং নাম পরিবর্তন)
+      # - name: Upload Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: release-data-artifact
+      #     path: release_data.txt
+      #     retention-days: 1
   deploy:
     needs: docker-build-push
     runs-on: ubuntu-latest
@@ -131,6 +131,7 @@ jobs:
 
           script: |
             set -e
+            VERSION_TAG=${{ github.ref_name }}
             echo "🎯 Deployment started with Image: $IMAGE_NAME" # ডিবাগিং এর জন্য IMAGE_NAME প্রিন্ট করুন
 
             mkdir -p $DEPLOY_PATH/logs $DEPLOY_PATH/uploads
@@ -156,9 +157,8 @@ jobs:
               chmod 600 .env
             fi
 
-            echo "📦 Pulling latest image..."
-            # $IMAGE_NAME 
-            docker pull $IMAGE_NAME:main
+            echo "📦 Pulling image: $IMAGE_NAME:$VERSION_TAG"
+            docker pull $IMAGE_NAME:$VERSION_TAG
 
             echo "🛑 Stopping old container..."
             docker stop $CONTAINER_NAME || true
@@ -179,7 +179,9 @@ jobs:
               --health-interval=15s \
               --health-retries=3 \
               --health-timeout=5s \
-              $IMAGE_NAME:main
+              # $IMAGE_NAME:main
+              # ⚡️ পরিবর্তন ২: এখানেও $IMAGE_NAME:main এর বদলে $VERSION_TAG ব্যবহার করুন
+              $IMAGE_NAME:$VERSION_TAG
 
             echo "✅ Checking container health..."
             sleep 10
@@ -192,3 +194,45 @@ jobs:
             docker image prune -af --filter "until=48h"
 
             echo "✅ Deployment Successful ✅"
+  finalize-release:
+    needs: deploy # ✅ এই জবটি কেবল deploy সফল হলেই রান হবে
+    runs-on: ubuntu-latest
+    if: success() && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ⚡️ পরিবর্তন ৩: vX.Y.Z ট্যাগটিকে latest হিসাবে ট্যাগ করুন এবং পুশ করুন
+      - name: Tag and Push Latest
+        run: |
+          VERSION_TAG=${{ github.ref_name }}
+          FULL_IMAGE_NAME=${{ env.IMAGE_NAME }}
+
+          # vX.Y.Z ইমেজটিকে latest হিসাবে ট্যাগ করা হচ্ছে
+          docker pull $FULL_IMAGE_NAME:$VERSION_TAG
+          docker tag $FULL_IMAGE_NAME:$VERSION_TAG $FULL_IMAGE_NAME:latest
+          docker push $FULL_IMAGE_NAME:latest
+
+          echo "✅ Latest tag updated successfully."
+
+      # ⚡️ পরিবর্তন ৪: Artifact তৈরি করা, যাতে Create Release-এ সব ডেটা যায়
+      - name: Save Final Tag Data for Release
+        id: save_tag
+        run: |
+          VERSION_TAG=${{ github.ref_name }}
+          FULL_IMAGE_NAME=${{ env.IMAGE_NAME }}
+
+          echo "VERSION_TAG=$VERSION_TAG" > release_data.txt
+          echo "FULL_IMAGE_NAME=$FULL_IMAGE_NAME" >> release_data.txt
+          echo "DOCKER_TAGS=$VERSION_TAG,latest" >> release_data.txt # এখন latest যোগ করা হয়েছে
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-data-artifact
+          path: release_data.txt
+          retention-days: 1
