@@ -9,8 +9,8 @@ on:
   #   tags:
   #     - "v*" # v1.0.0, v1.0.1, ইত্যাদির জন্য
 
-  push:
-    branches: [main]
+  # push:
+  #   branches: [main]
   workflow_dispatch: # Manual trigger option
     inputs:
       version:
