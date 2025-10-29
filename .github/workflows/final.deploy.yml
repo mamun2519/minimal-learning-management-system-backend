@@ -73,7 +73,7 @@ jobs:
           fi
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-       - name: Update package.json version
+      - name: Update package.json version
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
           VERSION_NUMBER=${VERSION#v}
