@@ -2,8 +2,6 @@ name: Build, Test & Deploy
 permissions:
   contents: write
 on:
-  # push:
-  #   branches: [main]  # main এ push হলে auto trigger
   workflow_dispatch: # Manual trigger option
     inputs:
       version:
@@ -16,6 +14,7 @@ env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/lms-backend
 
 jobs:
+  # stage 0: Build and Test
   build-and-test:
     runs-on: ubuntu-latest
     steps:
@@ -42,7 +41,7 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-  # ⭐ Version determine করা
+  # stage 1: Determine version
   determine-version:
     runs-on: ubuntu-latest
     outputs:
@@ -57,11 +56,11 @@ jobs:
         id: get_version
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            # Manual input থেকে version
+            # Manual input from version
             VERSION="${{ github.event.inputs.version }}"
             echo "📌 Using manual version: $VERSION"
           else
-            # Auto version bump (শেষ tag থেকে patch বাড়ানো)
+            # Auto version bump (end tag from patch level)
             LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
             echo "Latest tag: $LATEST_TAG"
             
@@ -88,7 +87,7 @@ jobs:
           git add package.json package-lock.json || true
           git commit -m "chore: bump version to $VERSION_NUMBER" || echo "No changes to commit"
           git push origin HEAD:${{ github.ref }}
-
+  # stage 2: Docker build and push
   docker-build-push:
     needs: [build-and-test, determine-version]
     runs-on: ubuntu-latest
@@ -140,7 +139,7 @@ jobs:
           name: release-data-artifact
           path: release_data.txt
           retention-days: 1
-
+  # stage 3: Deployment
   deploy:
     needs: [docker-build-push, determine-version]
     runs-on: ubuntu-latest
@@ -243,8 +242,7 @@ jobs:
           else
             echo "status=failed" >> $GITHUB_OUTPUT
           fi
-
-  # ⭐ Deployment সফল হলে tag তৈরি
+  # stage 4: Tag creation
   create-tag:
     needs: [determine-version, deploy]
     runs-on: ubuntu-latest
