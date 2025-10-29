@@ -6,8 +6,13 @@ on:
   # pull_request:
   #   branches: [main]
   push:
-    tags:
-      - "v*" # v1.0.0, v1.0.1, ইত্যাদির জন্য
+    branches: [main]
+  workflow_dispatch: # Manual trigger option
+    inputs:
+      version:
+        description: "Version to deploy (e.g., v1.2.3)"
+        required: true
+        type: string
 
 env:
   REGISTRY: docker.io
@@ -38,67 +43,9 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-  # Job 2: Build & Push Docker Image
-  # docker-build-push:
-  #   needs: build-and-test
-  #   runs-on: ubuntu-latest
-  #   if: github.event_name == 'push'
-  #   outputs:
-  #     image-tag: ${{ steps.meta.outputs.tags }}
-  #     version: ${{ steps.meta.outputs.version }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
-
-  #     - name: Log in to Docker Hub
-  #       uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  #     - name: Extract metadata
-  #       id: meta
-  #       uses: docker/metadata-action@v5
-  #       with:
-  #         images: ${{ env.IMAGE_NAME }}
-  #         tags: |
-  #           type=ref,event=branch
-  #           type=ref,event=pr
-  #           type=semver,pattern={{version}}
-  #           type=semver,pattern={{major}}.{{minor}}
-  #           type=sha,prefix={{branch}}-
-  #           type=raw,value=latest,enable={{is_default_branch}}
-
-  #     - name: Build and push Docker image
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         push: true
-  #         tags: ${{ steps.meta.outputs.tags }}
-  #         labels: ${{ steps.meta.outputs.labels }}
-  #         cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
-  #         cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
-  #     # ⭐ নতুন যোগ করা: ইমেজ ট্যাগগুলি সেভ করুন
-  #     - name: Save Image Tags for Release
-  #       id: save_tags
-  #       run: |
-  #         echo "Tags: ${{ steps.meta.outputs.tags }}" > image_tags.txt
-  #         echo "Version: ${{ steps.meta.outputs.version }}" >> image_tags.txt
-  #         echo "Image Name: ${{ env.IMAGE_NAME }}" >> image_tags.txt
-
-  #     # ⭐ নতুন যোগ করা: Artifact হিসাবে আপলোড করুন
-  #     - name: Upload Artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: release-image-tags
-  #         path: image_tags.txt
-  #         retention-days: 1
   # Job 3: Deploy to VPS
   docker-build-push:
-    needs: build-and-test #(যদি থাকে, তাহলে রাখুন)
+    needs: build-and-test
     runs-on: ubuntu-latest
 
     # ⚡️ পরিবর্তন ১: ট্যাগ পুশ হলেই কেবল এই জবটি চলবে
@@ -170,10 +117,10 @@ jobs:
     # if: github.ref == 'refs/heads/main'
     if: startsWith(github.ref, 'refs/tags/v')
 
-    # নতুন যোগ করা: DEPLOY_PATH এবং CONTAINER_NAME সংজ্ঞায়িত করা
+    # new add: DEPLOY_PATH এবং CONTAINER_NAME
     env:
       CONTAINER_NAME: minimal-lms-backend
-      DEPLOY_PATH: /home/${{ secrets.VPS_USERNAME }}/app/lms-backend # আপনার VPS এ deployment path
+      DEPLOY_PATH: /home/${{ secrets.VPS_USERNAME }}/app/lms-backend # your VPS  deployment path
 
     steps:
       - name: Deploy to VPS via SSH
@@ -215,7 +162,7 @@ jobs:
             fi
 
             echo "📦 Pulling latest image..."
-            # $IMAGE_NAME এর মান এখন সঠিকভাবে আসবে
+            # $IMAGE_NAME 
             docker pull $IMAGE_NAME:main
 
             echo "🛑 Stopping old container..."
